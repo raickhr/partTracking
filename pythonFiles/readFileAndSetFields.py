@@ -27,7 +27,7 @@ nextFilePath = Path(nextFile)
 
 ds = Dataset(fldLoc + '/' + fileName)
 
-writeFileName = fldLoc + '/' + fileName.rstrip('.nc') +'_RequiredFieldsOnly.nc'
+writeFileName = fldLoc + '/' + fileName.rstrip('.nc') +'_RequiredFieldsOnly_4O.nc'
 
 
 xqNC = ds.variables['xq']   # q grid point x direction
