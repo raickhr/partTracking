@@ -1,0 +1,28 @@
+{
+    "initialParticlePosition": true ,  
+    "initialParticlePositionFile": "initialParticlePositions.csv" ,
+    "nParticles": 500,
+    
+    "locationFolder": "./",
+    "filteredFileNameList": ["prog_001_RequiredFieldsOnly.nc",
+                             "prog_002_RequiredFieldsOnly.nc",
+                             "prog_003_RequiredFieldsOnly.nc",
+                             "prog_004_RequiredFieldsOnly.nc",
+                             "prog_005_RequiredFieldsOnly.nc",
+                             "prog_006_RequiredFieldsOnly.nc",
+                             "prog_007_RequiredFieldsOnly.nc",
+                             "prog_008_RequiredFieldsOnly.nc",
+                             "prog_009_RequiredFieldsOnly.nc",
+                             "prog_010_RequiredFieldsOnly.nc",
+                             "prog_011_RequiredFieldsOnly.nc"] ,
+
+    "timeIntegrationMethod": "RK4", 
+    "nSubTimeStep" : 20,
+    "spaceInterpolation" : "L4",
+    "uVarName" : "u_tilde",
+    "vVarName" : "v_tilde",
+    "nWriteFields" : 2, 
+    "writeFieldsName" :   ["RV", "PV"]
+
+}
+
