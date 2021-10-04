@@ -16,9 +16,6 @@ parser.add_argument("--fldLoc", "-l", type=str, default='.', action='store',
 parser.add_argument("--ellInKm", "-e", type=int, default=100, action='store',
                     help="this is the filterlength")
 
-parser.add_argument("--fldLoc", "-l", type=str, default='.', action='store',
-                    help="this is the location of the output file from MOM6")
-
 
 
 args = parser.parse_args()
