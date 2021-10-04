@@ -1,192 +1,191 @@
-from writeFilteredFields import S_tilde_11, U_tilde
-from netCDF4 import Dataset
-import numpy as np
 from filteringFunctions import *
-from lagrangianParticles import getIndices, updateCyclicXdirection, interpolate
+from netCDF4 import Dataset
 import argparse
-from pathlib import Path
-import sys
 
-dx = dy = 5000
-dt = 900
-
-def getInterpolatedField(xpos, ypos, xh, yh, FeildVal):
-    #returns interpolated field value
-    xpos = updateCyclicXdirection(xpos, xh)
-    index_X, index_Y, outDomain = getIndices(xpos, ypos, xh, yh)
-
-    if outDomain:
-        return float('nan')
-    
-    xlen = len(xh)
-    ylen = len(yh)
-
-    dx = xh[1] - xh[0]
-    dy = yh[1] - yh[0]
-
-    returnFieldVal = -1e34
-
-    if index_X < 0 or index_X >= xlen-1 or index_Y < 0 or index_Y >= ylen - 1:
-        returnFieldVal = -1e34
-    else:
-
-        x1 = index_X
-        y1 = index_Y
-
-        x2 = index_X+1
-        y2 = index_Y
-
-        x3 = index_X+1
-        y3 = index_Y+1
-
-        x4 = index_X
-        y4 = index_Y+1
-
-        xpos = xpos - xh[index_X]
-        ypos = ypos - yh[index_Y]
-
-        try:
-            Field_1 = FeildVal[y1, x1]
-            Field_2 = FeildVal[y2, x2]
-            Field_3 = FeildVal[y3, x3]
-            Field_4 = FeildVal[y4, x4]
-
-        except:
-            print("index error")
-            sys.exit()
-
-        returnFieldVal = interpolate(Field_1,
-                                Field_2,
-                                Field_3,
-                                Field_4,
-                                xpos, ypos, dx, dy)
-
-    return returnFieldVal
-
-
-def getFeild(ds, fieldName, timeIndx, yindex, xindex):
-    return np.array(ds.variables[fieldName][timeIndx, yindex, xindex])
-
-def getFeild2D(ds, fieldName, timeIndx):
-    return np.array(ds.variables[fieldName][timeIndx, :, :])
+dxInKm = 5
+dyInKm = 5
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--feildsFile", "-ff", type=str, default='FilteredFileds.nc', action='store',
-                    help="this is the filtered feilds file")
-
-parser.add_argument("--particleFile", "-pf", type=str, default='particleFile', action='store',
-                    help="this is the particle file")
+parser.add_argument("--inputFile", "-f", type=str, default='prog_RequiredFieldsOnly_4FilteredFields.nc', action='store',
+                    help="this is the output file after filtering")
 
 parser.add_argument("--fldLoc", "-l", type=str, default='.', action='store',
                     help="this is the location of the output file from MOM6")
 
+parser.add_argument("--ellInKm", "-e", type=int, default=100, action='store',
+                    help="this is the filterlength")
+
 args = parser.parse_args()
 
+fileName = args.inputFile
 fldLoc = args.fldLoc
+ellInKm = args.ellInKm
 
-ffileName = args.feildsFile
-ffds = Dataset(ffileName)
-fftime = np.array(ffds.variables['Time'])
-xh = np.array(ffds.variables['xh'])
-yh = np.array(ffds.variables['yh'])
-timeUnits = ffds.variables['Time'].units
-timelen = len(fftime)
+readFileName = fldLoc + '/' + fileName
+writeFileName = fldLoc + '/' + \
+    fileName.rstrip('RequiredFieldsOnly_4FilteredFields.nc') + \
+    'LambdaAndPiValues_4O.nc'
 
-ffTimeStep = fftime[1] - fftime[0]
+ds = Dataset(readFileName)
 
-fileNum = int(ffileName.lstrip('prog_').rstrip('_LambdaAndPiValues.nc'))
-nextFileNum = fileNum + 1
-nextFile = fldLoc + '/prog_{0:03d}_LambdaAndPiValues.nc'.format(nextFileNum)
-nextFilePath = Path(nextFile)
-nextFilteredFile = fldLoc + \
-    '/prog_{0:03d}_LambdaAndPiValues.nc'.format(nextFileNum)
+xh = np.array(ds.variables['xh'])
+yh = np.array(ds.variables['yh'])
+timeVal = np.array(ds.variables['Time'])
+timeUnits = ds.variables['Time'].units
 
-nffds = None
+U_bar = np.array(ds.variables['u_bar'])
+V_bar = np.array(ds.variables['v_bar'])
+hU_bar = np.array(ds.variables['hu_bar'])
+hV_bar = np.array(ds.variables['hv_bar'])
+hUU_bar = np.array(ds.variables['huu_bar'])
+hUV_bar = np.array(ds.variables['huv_bar'])
+hVV_bar = np.array(ds.variables['hvv_bar'])
+h_bar = np.array(ds.variables['h_bar'])
+hP_bar = np.array(ds.variables['hp_bar'])
 
-if nextFilePath.is_file():
-    nffds = Dataset(nextFile)
-else:
-    timelen -= 1
+U_tilde = hU_bar/h_bar
+V_tilde = hV_bar/h_bar
 
-pfileName = args.particleFile
-pfds = Dataset(pfileName)
-pftime = np.array(pfds.variables['Time'])
+UU_tilde = hUU_bar/h_bar
+UV_tilde = hUV_bar/h_bar
+VV_tilde = hVV_bar/h_bar
 
-xpos = pfds.variables['xpos']
-ypos = pfds.variables['ypos']
+d_dx_U_tilde, d_dy_U_tilde = getGradient(U_tilde, dxInKm*1000, dyInKm*1000)
+d_dx_V_tilde, d_dy_V_tilde = getGradient(V_tilde, dxInKm*1000, dyInKm*1000)
+d_dx_hP_bar, d_dy_hP_bar = getGradient(hP_bar, dxInKm*1000, dyInKm*1000)
+
+d_dx_U_bar, d_dy_U_bar = getGradient(U_bar, dxInKm*1000, dyInKm*1000)
+d_dx_V_bar, d_dy_V_bar = getGradient(V_bar, dxInKm*1000, dyInKm*1000)
+
+Pi = (d_dx_U_tilde * (UU_tilde - U_tilde**2) +
+      d_dy_U_tilde * (UV_tilde - U_tilde * V_tilde) +
+      d_dx_V_tilde * (UV_tilde - U_tilde * V_tilde) +
+      d_dy_V_tilde * (VV_tilde - V_tilde**2))
+
+Lambda = 1/h_bar * (d_dx_hP_bar * (hU_bar - U_bar * h_bar) +
+                    d_dy_hP_bar * (hV_bar - V_bar * h_bar))
+
+omega_tilde = d_dx_V_tilde - d_dy_U_tilde
+omega_tilde_sq = omega_tilde **2
+
+omega_bar = d_dx_V_bar - d_dy_U_bar
+
+S_tilde_11 = d_dx_U_tilde
+S_tilde_22 = d_dy_V_tilde
+S_tilde_12 = 0.5 * (d_dx_V_tilde + d_dy_U_tilde)
+
+S_tilde_sq = S_tilde_11**2 + S_tilde_22**2 + 2 * S_tilde_12**2
+
+S_bar_11 = d_dx_U_bar
+S_bar_22 = d_dy_V_bar
+S_bar_12 = 0.5 * (d_dx_V_bar + d_dy_U_bar)
+
+S_bar_sq = S_bar_11**2 + S_bar_22**2 + 2*S_bar_12**2
+d_dx_h_bar, d_dy_h_bar = getGradient(h_bar, dxInKm*1000, dyInKm*1000)
+
+C = 0.125
+
+Lambda_str = d_dx_h_bar * S_bar_11 * d_dx_hP_bar + \
+    d_dx_h_bar * S_bar_12 * d_dy_hP_bar + \
+    d_dy_h_bar * S_bar_12 * d_dx_hP_bar + \
+    d_dy_h_bar * S_bar_22 * d_dy_hP_bar
+
+# MULTIPLY by 1/rho is not done can be done at last because rho is constant
+Lambda_str *= C * (ellInKm*1000)**2 * 1/(h_bar)
+
+Lambda_rot = 0.5 * C * (ellInKm*1000)**2 * omega_bar * \
+    (d_dx_h_bar*d_dy_hP_bar - d_dy_h_bar*d_dx_hP_bar)/h_bar
 
 
-nPtime, nParticles = np.shape(xpos)
-DDt_Omega_Tilde_sq = np.zeros((nPtime, nParticles), dtype=float)
-DDt_S_Tilde_sq = np.zeros((nPtime, nParticles), dtype=float)
+S_Baro = (d_dx_h_bar * S_tilde_11 * d_dx_hP_bar +
+          d_dx_h_bar * S_tilde_12 * d_dy_hP_bar +
+          d_dy_h_bar * S_tilde_12 * d_dx_hP_bar +
+          d_dy_h_bar * S_tilde_22 * d_dy_hP_bar) / h_bar
+
+R_Barocl = omega_tilde * \
+    (d_dx_h_bar*d_dy_hP_bar - d_dy_h_bar*d_dx_hP_bar)/(h_bar)
 
 
-for timeIndex in range(0,timelen):
-    global xh, yh, ds, nds
-    ndsBool = False
-    Omega_TildeSq_t0 = getFeild2D(ds, 'Omega_tilde', timeIndex)**2
-    Omega_TildeSq_t1 = Omega_TildeSq_t0.copy()
-    
-    S_TildeSq_t0 = getFeild2D(ds, 'S_tilde_sq', timeIndex)
-    S_TildeSq_t1 = S_TildeSq_t0.copy()
+writeDS = Dataset(writeFileName, 'w', format='NETCDF4_CLASSIC')
 
-    U_Tilde = getFeild2D(ds, 'u_tilde', timeIndex)
-    V_Tilde = getFeild2D(ds, 'v_tilde', timeIndex)
-
-    if timeIndex == 999:
-        Omega_TildeSq_t1 = getFeild2D(nds, 'Omega_tilde', 0)**2
-        S_TildeSq_t1 = getFeild2D(nds, 'S_tilde_sq', 0)
-
-
-    ddx_Omega_TildeSq_t0, ddy_Omega_TildeSq_t0 = getGradient(Omega_TildeSq_t0, dx, dy)
-    ddx_S_TildeSq_t0, ddy_S_TildeSq_t0 = getGradient(S_TildeSq_t0, dx, dy)
-
-    for Pid in range(nParticles):
-        cur_xpos, cur_ypos = xpos[timeIndex, Pid], ypos[timeIndex, Pid]
-        
-        omega_Tilde_sq_t0_xy = getInterpolatedField(xpos, ypos, xh, yh, Omega_TildeSq_t0)
-        omega_Tilde_sq_t1_xy = getInterpolatedField(xpos, ypos, xh, yh, Omega_TildeSq_t1)
-
-        s_Tilde_sq_t0_xy = getInterpolatedField(xpos, ypos, xh, yh, S_TildeSq_t0)
-        s_Tilde_sq_t1_xy = getInterpolatedField(xpos, ypos, xh, yh, S_TildeSq_t1)
-
-        ddx_Omega_TildeSq_xy = getInterpolatedField(xpos, ypos, xh, yh, ddx_Omega_TildeSq_t0)
-        ddy_Omega_TildeSq_xy = getInterpolatedField(xpos, ypos, xh, yh, ddy_Omega_TildeSq_t0)
-
-        ddx_S_TildeSq_xy = getInterpolatedField(xpos, ypos, xh, yh, ddx_S_TildeSq_t0)
-        ddy_S_TildeSq_xy = getInterpolatedField(xpos, ypos, xh, yh, ddy_S_TildeSq_t0)
-
-        u_Tilde_xy = getInterpolatedField(xpos, ypos, xh, yh, U_Tilde)
-        v_Tilde_xy = getInterpolatedField(xpos, ypos, xh, yh, V_Tilde)
-
-        DDt_Omega_Tilde_sq[timeIndex, Pid] = (omega_Tilde_sq_t1_xy - omega_Tilde_sq_t0_xy)/dt + \
-            u_Tilde_xy * ddx_Omega_TildeSq_xy + \
-            v_Tilde_xy * ddy_Omega_TildeSq_xy
-
-        DDt_S_Tilde_sq[timeIndex, Pid] = (s_Tilde_sq_t1_xy - s_Tilde_sq_t0_xy)/dt + \
-            u_Tilde_xy * ddx_S_TildeSq_xy + \
-            v_Tilde_xy * ddy_S_TildeSq_xy
-            
-    
-writeDS = Dataset(wFname, 'w', format='NETCDF4_CLASSIC')
 writeDS.createDimension('Time', None)
-writeDS.createDimension('PID', nParticles)
+writeDS.createDimension('xh', 240)
+writeDS.createDimension('yh', 320)
 
-wCDF_Time = writeDS.createVariable('Time', np.float32, ('Time'))
-wCDF_Time.units = timeUnits
-wCDF_Time[0:timelen] = fftime[0:timelen]
+wcdf_Xh = writeDS.createVariable('xh', np.float32, ('xh'))
+wcdf_Xh.long_name = 'h point nominal longitude'
+wcdf_Xh.units = 'kilometers'
+wcdf_Xh[:] = xh[:]
 
-wCDF_var1 = writeDS.createVariable('Ddt_Omega_TildeSq', np.float32, ('Time', 'PID'))
-wCDF_var2 = writeDS.createVariable('Ddt_S_TildeSq', np.float32, ('Time', 'PID'))
+wcdf_Yh = writeDS.createVariable('yh', np.float32, ('yh'))
+wcdf_Yh.long_name = 'h point nominal latitude'
+wcdf_Yh.units = 'kilometers'
+wcdf_Yh[:] = yh[:]
 
-wCDF_var1[:, :] = DDt_Omega_Tilde_sq[:,:]
-wCDF_var2
+wcdf_Time = writeDS.createVariable('Time', np.float32, ('Time'))
+wcdf_Time.long_name = "Time"
+wcdf_Time.units = timeUnits
+wcdf_Time.cartesian_axis = "T"
+wcdf_Time.calendar_type = "JULIAN"
+wcdf_Time.calendar = "JULIAN"
+wcdf_Time[:] = timeVal
+
+wcdf_omega_tilde = writeDS.createVariable(
+    'omega_tilde', np.float32, ('Time', 'yh', 'xh'))
+wcdf_omega_tilde.long_name = "weighted filtered omega"
+wcdf_omega_tilde.units = "s^-1"
+wcdf_omega_tilde[:, :, :] = omega_tilde[:, :, :]
+
+wcdf_Omega_tilde_sq = writeDS.createVariable(
+    'Omega_tilde_sq', np.float32, ('Time', 'yh', 'xh'))
+wcdf_Omega_tilde_sq.long_name = "Omega tilde squared"
+wcdf_Omega_tilde_sq.units = "s^-4"
+wcdf_Omega_tilde_sq[:, :, :] = omega_tilde_sq[:,:,:]
 
 
+wcdf_Pi = writeDS.createVariable('Pi', np.float32, ('Time', 'yh', 'xh'))
+wcdf_Pi.long_name = "Energy Cascade Term, Pi"
+wcdf_Pi.units = "m^2 s^-3"
+wcdf_Pi[:, :, :] = Pi[:, :, :]
 
 
+wcdf_Lambda = writeDS.createVariable(
+    'Lambda', np.float32, ('Time', 'yh', 'xh'))
+wcdf_Lambda.long_name = "Energy Cascade Term, Lambda"
+wcdf_Lambda.units = "m^2 s^-3"
+wcdf_Lambda[:, :, :] = Lambda[:, :, :]
 
 
+wcdf_Lambda_str = writeDS.createVariable(
+    'Lambda_str', np.float32, ('Time', 'yh', 'xh'))
+wcdf_Lambda_str.long_name = "Modelled Energy Cascade Term (Strain Part), Lambda"
+wcdf_Lambda_str.units = "m^-1 s^-3"
+wcdf_Lambda_str[:, :, :] = Lambda_str[:, :, :]
+
+wcdf_Lambda_rot = writeDS.createVariable(
+    'Lambda_rot', np.float32, ('Time', 'yh', 'xh'))
+wcdf_Lambda_rot.long_name = "Modelled Energy Cascade Term (Rotation Part), Lambda"
+wcdf_Lambda_rot.units = "m^-1 s^-3"
+wcdf_Lambda_rot[:, :, :] = Lambda_rot[:, :, :]
+
+wcdf_R_Barocl = writeDS.createVariable(
+    'R_Barocl', np.float32, ('Time', 'yh', 'xh'))
+wcdf_R_Barocl.long_name = "R_baroclinic, a source term from evolution of omega squared"
+wcdf_R_Barocl.units = "kg m^-3 s^-1"
+wcdf_R_Barocl[:, :, :] = R_Barocl[:, :, :]
+
+wcdf_S_Baro = writeDS.createVariable(
+    'S_Baro', np.float32, ('Time', 'yh', 'xh'))
+wcdf_S_Baro.long_name = "S_barotropic, a source term from evolution of S squared"
+wcdf_S_Baro.units = "kg m^-3 s^-1"
+wcdf_S_Baro[:, :, :] = S_Baro[:, :, :]
+
+wcdf_S_tilde_sq = writeDS.createVariable(
+    'S_tilde_sq', np.float32, ('Time', 'yh', 'xh'))
+wcdf_S_tilde_sq.long_name = "S_tilde_squared SijSij"
+wcdf_S_tilde_sq.units = "s^-4"
+wcdf_S_tilde_sq[:, :, :] = S_tilde_sq[:, :, :]
 
 
+writeDS.close()
