@@ -1,0 +1,33 @@
+{
+    "initialParticlePosition": true ,  
+    "initialParticlePositionFile": "initialParticlePositions.csv" ,
+    "nParticles": 500,
+    
+    "locationFolder": "./",
+    "filteredFileNameList": ["prog_001_LambdaAndPiValues_4O.nc",
+                             "prog_002_LambdaAndPiValues_4O.nc",
+                             "prog_003_LambdaAndPiValues_4O.nc",
+                             "prog_004_LambdaAndPiValues_4O.nc",
+                             "prog_005_LambdaAndPiValues_4O.nc",
+                             "prog_006_LambdaAndPiValues_4O.nc",
+                             "prog_007_LambdaAndPiValues_4O.nc",
+                             "prog_008_LambdaAndPiValues_4O.nc",
+                             "prog_009_LambdaAndPiValues_4O.nc",
+                             "prog_010_LambdaAndPiValues_4O.nc",
+                             "prog_011_LambdaAndPiValues_4O.nc"] ,
+
+    "timeIntegrationMethod": "PCE", 
+    "nSubTimeStep" : 1,
+    "spaceInterpolation" : "L4",
+    "uVarName" : "u_tilde",
+    "vVarName" : "v_tilde",
+    "nWriteFields" : 8, 
+    "writeFieldsName" :   ["Lambda", 
+                            "Pi",
+                            "Omega_tilde_sq",
+                            "S_tilde_sq",
+                            "R_Barocl",
+                            "S_Baro",
+                            "Lambda_str",
+                            "Lambda_rot"]
+}

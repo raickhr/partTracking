@@ -130,6 +130,18 @@ wcdf_Time.calendar_type = "JULIAN"
 wcdf_Time.calendar = "JULIAN"
 wcdf_Time[:] = timeVal
 
+wcdf_U_tilde = writeDS.createVariable(
+    'u_tilde', np.float32, ('Time', 'yh', 'xh'))
+wcdf_U_tilde.long_name = "u_tilde"
+wcdf_U_tilde.units = "m s^-1"
+wcdf_U_tilde[:, :, :] = U_tilde[:, :, :]
+
+wcdf_V_tilde = writeDS.createVariable(
+    'v_tilde', np.float32, ('Time', 'yh', 'xh'))
+wcdf_V_tilde.long_name = "v_tilde"
+wcdf_V_tilde.units = "m s^-1"
+wcdf_V_tilde[:, :, :] = V_tilde[:, :, :]
+
 wcdf_omega_tilde = writeDS.createVariable(
     'omega_tilde', np.float32, ('Time', 'yh', 'xh'))
 wcdf_omega_tilde.long_name = "weighted filtered omega"
