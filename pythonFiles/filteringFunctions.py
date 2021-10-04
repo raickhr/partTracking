@@ -59,8 +59,9 @@ def getInterpolated(field, oldX, oldY, newX, newY):
     for i in range(timelen):
         #f = interpolate.interp2d(oldX, oldY, field[i, :, :], kind='linear')
         f = interpolate.RectBivariateSpline(
-            oldX, oldY, field[i, :, :], kx = 4, ky =4)
-        fieldnew[i, :, :] = f(newX, newY)
+            oldY, oldX, field[i, :, :], kx = 4, ky =4)
+        #fieldnew[i, :, :] = f(newX, newY)
+        fieldnew[i, :, :] = f(newY, newX)
 
     return fieldnew
 
