@@ -2,6 +2,8 @@ from filteringFunctions import *
 from netCDF4 import Dataset
 import argparse
 
+from pythonFiles.writeFilteredFieldsOrig import P_bar
+
 dxInKm = 5
 dyInKm = 5
 
@@ -42,6 +44,9 @@ hUV_bar = np.array(ds.variables['huv_bar'])
 hVV_bar = np.array(ds.variables['hvv_bar'])
 h_bar = np.array(ds.variables['h_bar'])
 hP_bar = np.array(ds.variables['hp_bar'])
+P_bar = np.array(ds.variables['p_Bar'])
+Pdxh_bar = np.array(ds.variables['pdx_h_bar'])
+Pdyh_bar = np.array(ds.variables['pdy_h_bar'])
 
 U_tilde = hU_bar/h_bar
 V_tilde = hV_bar/h_bar
@@ -53,9 +58,17 @@ VV_tilde = hVV_bar/h_bar
 d_dx_U_tilde, d_dy_U_tilde = getGradient(U_tilde, dxInKm*1000, dyInKm*1000)
 d_dx_V_tilde, d_dy_V_tilde = getGradient(V_tilde, dxInKm*1000, dyInKm*1000)
 d_dx_hP_bar, d_dy_hP_bar = getGradient(hP_bar, dxInKm*1000, dyInKm*1000)
+d_dx_P_bar, d_dy_P_bar = getGradient(P_bar, dxInKm*1000, dyInKm*1000)
+d_dx_h_bar, d_dy_h_bar = getGradient(h_bar, dxInKm*1000, dyInKm*1000)
 
 d_dx_U_bar, d_dy_U_bar = getGradient(U_bar, dxInKm*1000, dyInKm*1000)
 d_dx_V_bar, d_dy_V_bar = getGradient(V_bar, dxInKm*1000, dyInKm*1000)
+
+tau_P_gradh_xComp = Pdxh_bar - (P_bar*d_dx_h_bar)
+tau_P_gradh_yComp = Pdyh_bar - (P_bar*d_dy_h_bar)
+
+uTilde_dot_tau = U_tilde * tau_P_gradh_xComp + V_tilde * tau_P_gradh_yComp
+uTilde_dot_Pgardh = U_tilde * d_dx_P_bar + V_tilde* d_dy_P_bar
 
 Pi = (d_dx_U_tilde * (UU_tilde - U_tilde**2) +
       d_dy_U_tilde * (UV_tilde - U_tilde * V_tilde) +
