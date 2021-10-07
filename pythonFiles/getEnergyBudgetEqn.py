@@ -2,8 +2,6 @@ from filteringFunctions import *
 from netCDF4 import Dataset
 import argparse
 
-from pythonFiles.writeFilteredFieldsOrig import P_bar
-
 dxInKm = 5
 dyInKm = 5
 
@@ -48,7 +46,7 @@ hUV_bar = np.array(ds.variables['huv_bar'])
 hVV_bar = np.array(ds.variables['hvv_bar'])
 h_bar = np.array(ds.variables['h_bar'])
 hP_bar = np.array(ds.variables['hp_bar'])
-P_bar = np.array(ds.variables['p_Bar'])
+P_bar = np.array(ds.variables['p_bar'])
 Pdxh_bar = np.array(ds.variables['pdx_h_bar'])
 Pdyh_bar = np.array(ds.variables['pdy_h_bar'])
 
