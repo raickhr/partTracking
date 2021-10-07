@@ -70,13 +70,22 @@ tau_P_gradh_yComp = Pdyh_bar - (P_bar*d_dy_h_bar)
 uTilde_dot_tau = U_tilde * tau_P_gradh_xComp + V_tilde * tau_P_gradh_yComp
 uTilde_dot_Pgardh = U_tilde * d_dx_P_bar + V_tilde* d_dy_P_bar
 
-Pi = (d_dx_U_tilde * (UU_tilde - U_tilde**2) +
-      d_dy_U_tilde * (UV_tilde - U_tilde * V_tilde) +
-      d_dx_V_tilde * (UV_tilde - U_tilde * V_tilde) +
-      d_dy_V_tilde * (VV_tilde - V_tilde**2))
+Pi = -h_bar *(d_dx_U_tilde * (UU_tilde - U_tilde**2) +
+              d_dy_U_tilde * (UV_tilde - U_tilde * V_tilde) +
+              d_dx_V_tilde * (UV_tilde - U_tilde * V_tilde) +
+              d_dy_V_tilde * (VV_tilde - V_tilde**2))
 
 Lambda = 1/h_bar * (d_dx_hP_bar * (hU_bar - U_bar * h_bar) +
                     d_dy_hP_bar * (hV_bar - V_bar * h_bar))
+
+
+Jx = U_bar * hP_bar + U_tilde * h_bar * ((UU_tilde - U_tilde*U_tilde)) +\
+                      V_tilde * h_bar * ((UV_tilde - V_tilde*U_tilde))
+
+Jy = V_bar * hP_bar + V_tilde * h_bar * ((VV_tilde - V_tilde*U_tilde)) +\
+                      U_tilde * h_bar * ((UV_tilde - V_tilde*U_tilde))
+
+nablaJ = getDiv(Jx, Jy, dxInKm*1000, dyInKm*1000)
 
 omega_tilde = d_dx_V_tilde - d_dy_U_tilde
 omega_tilde_sq = omega_tilde **2

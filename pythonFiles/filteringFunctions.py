@@ -78,3 +78,16 @@ def getGradient(field, dx, dy):
 
     return gradx, grady
 
+
+def getDiv(fieldx, fieldy, dx, dy):
+    (timeLen, Ylen, Xlen) = np.shape(fieldx)
+    yaxis = 1
+    xaxis = 2
+
+    gradx = (np.roll(fieldx, -1, axis=xaxis) -
+             np.roll(fieldx, 1, axis=xaxis))/(2*dx)
+    grady = (np.roll(fieldy, -1, axis=yaxis) -
+             np.roll(fieldy, 1, axis=yaxis))/(2*dy)
+
+    return (gradx + grady)
+
