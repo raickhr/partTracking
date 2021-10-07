@@ -18,11 +18,15 @@ parser.add_argument("--fldLoc", "-l", type=str, default='.', action='store',
 parser.add_argument("--ellInKm", "-e", type=int, default=100, action='store',
                     help="this is the filterlength")
 
+parser.add_argument("--rho", "-r", type=float, default=1031.0, action='store',
+                    help="this is the density of the layer")
+
 args = parser.parse_args()
 
 fileName = args.inputFile
 fldLoc = args.fldLoc
 ellInKm = args.ellInKm
+rho = args.rho
 
 readFileName = fldLoc + '/' + fileName
 writeFileName = fldLoc + '/' + \
@@ -64,28 +68,31 @@ d_dx_h_bar, d_dy_h_bar = getGradient(h_bar, dxInKm*1000, dyInKm*1000)
 d_dx_U_bar, d_dy_U_bar = getGradient(U_bar, dxInKm*1000, dyInKm*1000)
 d_dx_V_bar, d_dy_V_bar = getGradient(V_bar, dxInKm*1000, dyInKm*1000)
 
-tau_P_gradh_xComp = Pdxh_bar - (P_bar*d_dx_h_bar)
-tau_P_gradh_yComp = Pdyh_bar - (P_bar*d_dy_h_bar)
-
-uTilde_dot_tau = U_tilde * tau_P_gradh_xComp + V_tilde * tau_P_gradh_yComp
-uTilde_dot_Pgardh = U_tilde * d_dx_P_bar + V_tilde* d_dy_P_bar
-
 Pi = -h_bar *(d_dx_U_tilde * (UU_tilde - U_tilde**2) +
               d_dy_U_tilde * (UV_tilde - U_tilde * V_tilde) +
               d_dx_V_tilde * (UV_tilde - U_tilde * V_tilde) +
               d_dy_V_tilde * (VV_tilde - V_tilde**2))
 
-Lambda = 1/h_bar * (d_dx_hP_bar * (hU_bar - U_bar * h_bar) +
+Lambda = 1/(h_bar * rho) * (d_dx_hP_bar * (hU_bar - U_bar * h_bar) +
                     d_dy_hP_bar * (hV_bar - V_bar * h_bar))
 
 
-Jx = U_bar * hP_bar + U_tilde * h_bar * ((UU_tilde - U_tilde*U_tilde)) +\
+Jx = 1/rho * U_bar * hP_bar + U_tilde * h_bar * ((UU_tilde - U_tilde*U_tilde)) +\
                       V_tilde * h_bar * ((UV_tilde - V_tilde*U_tilde))
 
-Jy = V_bar * hP_bar + V_tilde * h_bar * ((VV_tilde - V_tilde*U_tilde)) +\
+Jy = 1/rho * V_bar * hP_bar + V_tilde * h_bar * ((VV_tilde - V_tilde*U_tilde)) +\
                       U_tilde * h_bar * ((UV_tilde - V_tilde*U_tilde))
 
 nablaJ = getDiv(Jx, Jy, dxInKm*1000, dyInKm*1000)
+
+divUbar = getDiv(U_bar, V_bar, dxInKm*1000, dyInKm*1000)
+pDilation = 1/rho * hP_bar * divUbar
+
+tau_P_gradh_xComp = Pdxh_bar - (P_bar*d_dx_h_bar)
+tau_P_gradh_yComp = Pdyh_bar - (P_bar*d_dy_h_bar)
+
+engSmScFormDrag = 1/rho * (U_tilde * tau_P_gradh_xComp + V_tilde * tau_P_gradh_yComp)
+engLgScFormDrag = 1/rho * (U_tilde * d_dx_P_bar + V_tilde * d_dy_P_bar)
 
 omega_tilde = d_dx_V_tilde - d_dy_U_tilde
 omega_tilde_sq = omega_tilde **2
@@ -112,20 +119,19 @@ Lambda_str = d_dx_h_bar * S_bar_11 * d_dx_hP_bar + \
     d_dy_h_bar * S_bar_12 * d_dx_hP_bar + \
     d_dy_h_bar * S_bar_22 * d_dy_hP_bar
 
-# MULTIPLY by 1/rho is not done can be done at last because rho is constant
-Lambda_str *= C * (ellInKm*1000)**2 * 1/(h_bar)
+Lambda_str *= C * (ellInKm*1000)**2 * 1/(rho * h_bar)
 
 Lambda_rot = 0.5 * C * (ellInKm*1000)**2 * omega_bar * \
-    (d_dx_h_bar*d_dy_hP_bar - d_dy_h_bar*d_dx_hP_bar)/h_bar
+    (d_dx_h_bar*d_dy_hP_bar - d_dy_h_bar*d_dx_hP_bar)/(rho * h_bar)
 
 
 S_Baro = (d_dx_h_bar * S_tilde_11 * d_dx_hP_bar +
           d_dx_h_bar * S_tilde_12 * d_dy_hP_bar +
           d_dy_h_bar * S_tilde_12 * d_dx_hP_bar +
-          d_dy_h_bar * S_tilde_22 * d_dy_hP_bar) / h_bar
+          d_dy_h_bar * S_tilde_22 * d_dy_hP_bar) / (rho * h_bar)
 
 R_Barocl = omega_tilde * \
-    (d_dx_h_bar*d_dy_hP_bar - d_dy_h_bar*d_dx_hP_bar)/(h_bar)
+    (d_dx_h_bar*d_dy_hP_bar - d_dy_h_bar*d_dx_hP_bar)/(rho * h_bar)
 
 
 writeDS = Dataset(writeFileName, 'w', format='NETCDF4_CLASSIC')
@@ -164,6 +170,12 @@ wcdf_V_tilde.long_name = "v_tilde"
 wcdf_V_tilde.units = "m s^-1"
 wcdf_V_tilde[:, :, :] = V_tilde[:, :, :]
 
+wcdf_h_bar = writeDS.createVariable(
+    'h_bar', np.float32, ('Time', 'yh', 'xh'))
+wcdf_h_bar.long_name = "h_bar"
+wcdf_h_bar.units = "m"
+wcdf_h_bar[:, :, :] = h_bar[:, :, :]
+
 wcdf_omega_tilde = writeDS.createVariable(
     'omega_tilde', np.float32, ('Time', 'yh', 'xh'))
 wcdf_omega_tilde.long_name = "weighted filtered omega"
@@ -179,15 +191,51 @@ wcdf_Omega_tilde_sq[:, :, :] = omega_tilde_sq[:,:,:]
 
 wcdf_Pi = writeDS.createVariable('Pi', np.float32, ('Time', 'yh', 'xh'))
 wcdf_Pi.long_name = "Energy Cascade Term, Pi"
-wcdf_Pi.units = "m^2 s^-3"
+wcdf_Pi.units = "m^3 s^-3"
 wcdf_Pi[:, :, :] = Pi[:, :, :]
 
 
 wcdf_Lambda = writeDS.createVariable(
     'Lambda', np.float32, ('Time', 'yh', 'xh'))
 wcdf_Lambda.long_name = "Energy Cascade Term, Lambda"
-wcdf_Lambda.units = "m^2 s^-3"
+wcdf_Lambda.units = "m^3 s^-3"
 wcdf_Lambda[:, :, :] = Lambda[:, :, :]
+
+wcdf_nablaJ = writeDS.createVariable(
+    'nablaJ', np.float32, ('Time', 'yh', 'xh'))
+wcdf_nablaJ.long_name = \
+    "Transport term"
+wcdf_nablaJ.units = \
+    "m^3 s^-3"
+wcdf_nablaJ[:, :, :] = \
+     nablaJ[:, :, :]
+
+wcdf_pDilation = writeDS.createVariable(
+    'pDilation', np.float32, ('Time', 'yh', 'xh'))
+wcdf_pDilation.long_name = \
+    "Pressure Dilation"
+wcdf_pDilation.units = \
+    "m^3 s^-3"
+wcdf_pDilation[:, :, :] = \
+    pDilation[:, :, :]
+
+wcdf_engLgScFormDrag = writeDS.createVariable(
+    'engLgScFormDrag', np.float32, ('Time', 'yh', 'xh'))
+wcdf_engLgScFormDrag.long_name = \
+    "energy from Large Scale Form Drag"
+wcdf_engLgScFormDrag.units = \
+    "m^3 s^-3"
+wcdf_engLgScFormDrag[:, :, :] = \
+    engLgScFormDrag[:, :, :]
+
+wcdf_engSmScFormDrag = writeDS.createVariable(
+    'engSmScFormDrag', np.float32, ('Time', 'yh', 'xh'))
+wcdf_engSmScFormDrag.long_name = \
+    "energy from Small Scale Form Drag"
+wcdf_engSmScFormDrag.units = \
+    "m^3 s^-3"
+wcdf_engSmScFormDrag[:, :, :] = \
+    engSmScFormDrag[:, :, :]
 
 
 wcdf_Lambda_str = writeDS.createVariable(
