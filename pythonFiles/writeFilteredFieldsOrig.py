@@ -26,7 +26,7 @@ ellInKm = args.ellInKm
 
 readFileName = fldLoc + '/' + fileName
 writeFileName = fldLoc + '/' + \
-    fileName.rstrip('RequiredFieldsOnly.nc') + 'FilteredFields.nc'
+    fileName.replace('_RequiredFieldsOnly_4O.nc','_FilteredFields_4O.nc')
 
 ds = Dataset(readFileName)
 

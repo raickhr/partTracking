@@ -20,9 +20,9 @@ args = parser.parse_args()
 fileName = args.inputFile
 fldLoc = args.fldLoc
 
-fileNum = int(fileName.lstrip('prog_').rstrip('.nc'))
+fileNum = int(fileName.lstrip('run25_prog_').rstrip('.nc'))
 nextFileNum = fileNum + 1
-nextFile = fldLoc + '/prog_{0:03d}.nc'.format(nextFileNum)
+nextFile = fldLoc + '/run25_prog_{0:03d}.nc'.format(nextFileNum)
 nextFilePath = Path(nextFile)
 
 ds = Dataset(fldLoc + '/' + fileName)

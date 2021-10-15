@@ -39,6 +39,7 @@ for fileNum in range(nFiles):
         suffix = 'RK4'
     elif config.timeIntegrationMethod == 'PCE':
         suffix = 'PCE'
+        
     wFname = config.locationFolder + '/' + config.filteredFileNameList[fileNum].rstrip('.nc') + \
         '_{0:03d}p_{1:s}_{2:02d}substeps_{3:s}.nc'.format(config.nParticles, suffix, config.nSubTimeStep, \
                                                           config.spaceInterpolation)

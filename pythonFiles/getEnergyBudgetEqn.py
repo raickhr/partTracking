@@ -28,7 +28,7 @@ rho = args.rho
 
 readFileName = fldLoc + '/' + fileName
 writeFileName = fldLoc + '/' + \
-    fileName.replace("_RequiredFieldsOnly_4FilteredFields.nc","_LambdaAndPiValues_4O.nc")
+    fileName.replace("_FilteredFields_4O.nc", "_LambdaAndPiValues_4O.nc")
 
 ds = Dataset(readFileName)
 
