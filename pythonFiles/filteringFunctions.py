@@ -91,3 +91,15 @@ def getDiv(fieldx, fieldy, dx, dy):
 
     return (gradx + grady)
 
+
+def getZCurl(fieldx, fieldy, dx, dy):
+    (timeLen, Ylen, Xlen) = np.shape(fieldx)
+    yaxis = 1
+    xaxis = 2
+
+    gradx = (np.roll(fieldy, -1, axis=xaxis) -
+             np.roll(fieldy, 1, axis=xaxis))/(2*dx)
+    grady = (np.roll(fieldx, -1, axis=yaxis) -
+             np.roll(fieldx, 1, axis=yaxis))/(2*dy)
+
+    return (gradx - grady)
