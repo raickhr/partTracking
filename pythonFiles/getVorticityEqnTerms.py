@@ -27,7 +27,7 @@ beta = 2.0E-11
 
 readFileName = fldLoc + '/' + fileName
 writeFileName = fldLoc + '/' + \
-    fileName.replace("_RequiredFieldsOnly_4FilteredFields",
+    fileName.replace("_RequiredFieldsOnly_4O.nc",
                      "_VorticityEqnTerms_4O.nc")
 
 ds = Dataset(readFileName)
@@ -45,9 +45,9 @@ PV = np.array(ds.variables['PV'])
 
 
 farr = np.ones(np.shape(U),dtype=float)
-(tlen, ylen, xlen) = np.shape(np.shape(U))
+(tlen, ylen, xlen) = np.shape(U)
 
-y = yh = np.mean(yh)
+y = yh - np.mean(yh)
 
 for i in range(ylen):
     farr[:,i,:] = f0 + beta*y[i]
@@ -104,6 +104,19 @@ wcdf_Time.cartesian_axis = "T"
 wcdf_Time.calendar_type = "JULIAN"
 wcdf_Time.calendar = "JULIAN"
 wcdf_Time[:] = timeVal
+
+
+wcdf_u = writeDS.createVariable(
+    'u', np.float32, ('Time', 'yh', 'xh'))
+wcdf_u.long_name = "u"
+wcdf_u.units = "m s^-1"
+wcdf_u[:, :, :] = U[:, :, :]
+
+wcdf_v = writeDS.createVariable(
+    'v', np.float32, ('Time', 'yh', 'xh'))
+wcdf_v.long_name = "v"
+wcdf_v.units = "m s^-1"
+wcdf_v[:, :, :] = V[:, :, :]
 
 wcdf_omega = writeDS.createVariable(
     'omega', np.float32, ('Time', 'yh', 'xh'))
