@@ -37,6 +37,9 @@ yh = np.array(ds.variables['yh'])
 timeVal = np.array(ds.variables['Time'])
 timeUnits = ds.variables['Time'].units
 
+dt = timeVal[1] - timeVal[0]
+tlen = len(timeVal)
+
 U = np.array(ds.variables['u'])
 V = np.array(ds.variables['v'])
 h = np.array(ds.variables['h'])
@@ -64,6 +67,17 @@ d_dx_omega, d_dy_omega = getGradient(omega, dxInKm*1000, dyInKm*1000)
 d_dx_totVort, d_dy_totVort = getGradient(totVort, dxInKm*1000, dyInKm*1000)
 d_dx_RV, d_dy_RV = getGradient(RV, dxInKm*1000, dyInKm*1000)
 d_dx_PV, d_dy_PV = getGradient(PV, dxInKm*1000, dyInKm*1000)
+
+
+d_dt_omega = (np.roll(omega,-1,axis = 0) - omega)/dt
+d_dt_totVort = (np.roll(totVort,-1,axis = 0) - totVort)/dt
+d_dt_RV = (np.roll(RV, -1, axis=0) - RV)/dt
+d_dt_PV = (np.roll(PV, -1, axis=0) - PV)/dt
+
+d_dt_omega[tlen-1, :, :] = np.float('nan')
+d_dt_totVort[tlen-1, :, :] = np.float('nan')
+d_dt_RV[tlen-1, :, :] = np.float('nan')
+d_dt_PV[tlen-1, :, :] = np.float('nan')
 
 advecTermOmega = U* d_dx_omega + V* d_dy_omega
 advecTermTotVort = U * d_dx_totVort + V * d_dy_totVort
@@ -141,6 +155,31 @@ wcdf_PV = writeDS.createVariable(
 wcdf_PV.long_name = "PV from original output"
 wcdf_PV.units = "s^-1"
 wcdf_PV[:, :, :] = PV[:, :, :]
+
+
+wcdf_d_dt_omega = writeDS.createVariable(
+    'd_dt_omega', np.float32, ('Time', 'yh', 'xh'))
+wcdf_d_dt_omega.long_name = "eulerian time derivative of omega"
+wcdf_d_dt_omega.units = "s^-2"
+wcdf_d_dt_omega[:, :, :] = omega[:, :, :]
+
+wcdf_d_dt_totVort = writeDS.createVariable(
+    'd_dt_totVort', np.float32, ('Time', 'yh', 'xh'))
+wcdf_d_dt_totVort.long_name = "eulerian time derivative of total Vorticity"
+wcdf_d_dt_totVort.units = "s^-2"
+wcdf_d_dt_totVort[:, :, :] = totVort[:, :, :]
+
+wcdf_d_dt_RV = writeDS.createVariable(
+    'd_dt_RV', np.float32, ('Time', 'yh', 'xh'))
+wcdf_d_dt_RV.long_name = "eulerian time derivative of RV from original output"
+wcdf_d_dt_RV.units = "s^-2"
+wcdf_d_dt_RV[:, :, :] = RV[:, :, :]
+
+wcdf_d_dt_PV = writeDS.createVariable(
+    'd_dt_PV', np.float32, ('Time', 'yh', 'xh'))
+wcdf_d_dt_PV.long_name = "eulerian time derivative of PV from original output"
+wcdf_d_dt_PV.units = "s^-2"
+wcdf_d_dt_PV[:, :, :] = PV[:, :, :]
 
 
 wcdf_advecTermOmega = writeDS.createVariable(
