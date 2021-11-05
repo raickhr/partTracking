@@ -74,10 +74,10 @@ d_dt_totVort = (np.roll(totVort,-1,axis = 0) - totVort)/dt
 d_dt_RV = (np.roll(RV, -1, axis=0) - RV)/dt
 d_dt_PV = (np.roll(PV, -1, axis=0) - PV)/dt
 
-d_dt_omega[tlen-1, :, :] = np.float('nan')
-d_dt_totVort[tlen-1, :, :] = np.float('nan')
-d_dt_RV[tlen-1, :, :] = np.float('nan')
-d_dt_PV[tlen-1, :, :] = np.float('nan')
+d_dt_omega[tlen-1, :, :] = float('nan')
+d_dt_totVort[tlen-1, :, :] = float('nan')
+d_dt_RV[tlen-1, :, :] = float('nan')
+d_dt_PV[tlen-1, :, :] = float('nan')
 
 advecTermOmega = U* d_dx_omega + V* d_dy_omega
 advecTermTotVort = U * d_dx_totVort + V * d_dy_totVort
