@@ -161,25 +161,25 @@ wcdf_d_dt_omega = writeDS.createVariable(
     'd_dt_omega', np.float32, ('Time', 'yh', 'xh'))
 wcdf_d_dt_omega.long_name = "eulerian time derivative of omega"
 wcdf_d_dt_omega.units = "s^-2"
-wcdf_d_dt_omega[:, :, :] = omega[:, :, :]
+wcdf_d_dt_omega[:, :, :] = d_dt_omega[:, :, :]
 
 wcdf_d_dt_totVort = writeDS.createVariable(
     'd_dt_totVort', np.float32, ('Time', 'yh', 'xh'))
 wcdf_d_dt_totVort.long_name = "eulerian time derivative of total Vorticity"
 wcdf_d_dt_totVort.units = "s^-2"
-wcdf_d_dt_totVort[:, :, :] = totVort[:, :, :]
+wcdf_d_dt_totVort[:, :, :] = d_dt_totVort[:, :, :]
 
 wcdf_d_dt_RV = writeDS.createVariable(
     'd_dt_RV', np.float32, ('Time', 'yh', 'xh'))
 wcdf_d_dt_RV.long_name = "eulerian time derivative of RV from original output"
 wcdf_d_dt_RV.units = "s^-2"
-wcdf_d_dt_RV[:, :, :] = RV[:, :, :]
+wcdf_d_dt_RV[:, :, :] = d_dt_RV[:, :, :]
 
 wcdf_d_dt_PV = writeDS.createVariable(
     'd_dt_PV', np.float32, ('Time', 'yh', 'xh'))
 wcdf_d_dt_PV.long_name = "eulerian time derivative of PV from original output"
 wcdf_d_dt_PV.units = "s^-2"
-wcdf_d_dt_PV[:, :, :] = PV[:, :, :]
+wcdf_d_dt_PV[:, :, :] = d_dt_PV[:, :, :]
 
 
 wcdf_advecTermOmega = writeDS.createVariable(
