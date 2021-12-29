@@ -28,7 +28,7 @@ rho = args.rho
 
 readFileName = fldLoc + '/' + fileName
 writeFileName = fldLoc + '/' + \
-    fileName.replace("_RequiredFieldsOnly_4FilteredFields",
+    fileName.replace("_FilteredFields_4O.nc",
                      "_OmegaEqnTerms_4O.nc")
 
 ds = Dataset(readFileName)
@@ -37,6 +37,9 @@ xh = np.array(ds.variables['xh'])
 yh = np.array(ds.variables['yh'])
 timeVal = np.array(ds.variables['Time'])
 timeUnits = ds.variables['Time'].units
+
+dt = timeVal[1] - timeVal[0]
+tlen = len(timeVal)
 
 U_bar = np.array(ds.variables['u_bar'])
 V_bar = np.array(ds.variables['v_bar'])
@@ -72,6 +75,12 @@ d_dx_V_bar, d_dy_V_bar = getGradient(V_bar, dxInKm*1000, dyInKm*1000)
 omega_tilde = d_dx_V_tilde - d_dy_U_tilde
 omega_tilde_sq = omega_tilde ** 2
 omega_bar = d_dx_V_bar - d_dy_U_bar
+
+d_dx_omega_tilde_sq, d_dy_omega_tilde_sq = getGradient(omega_tilde_sq, dxInKm*1000, dyInKm*1000)
+d_dt_omega_tilde_sq = (np.roll(omega_tilde_sq, -1, axis=0) - omega_tilde_sq)/dt
+d_dt_omega_tilde_sq[tlen-1, :, :] = float('nan')
+
+advecTermOmegaTildeSq = U_tilde * d_dx_omega_tilde_sq + V_tilde * d_dy_omega_tilde_sq
 
 ## Dilation term
 divUbar = getDiv(U_bar, V_bar, dxInKm*1000, dyInKm*1000)
@@ -167,6 +176,18 @@ wcdf_Omega_tilde_sq = writeDS.createVariable(
 wcdf_Omega_tilde_sq.long_name = "Omega tilde squared"
 wcdf_Omega_tilde_sq.units = "s^-4"
 wcdf_Omega_tilde_sq[:, :, :] = omega_tilde_sq[:, :, :]
+
+wcdf_d_dt_omega_tilde_sq = writeDS.createVariable(
+    'd_dt_omega_tilde_sq', np.float32, ('Time', 'yh', 'xh'))
+wcdf_d_dt_omega_tilde_sq.long_name = "d_dt Omega tilde squared"
+wcdf_d_dt_omega_tilde_sq.units = "s^-3"
+wcdf_d_dt_omega_tilde_sq[:, :, :] = d_dt_omega_tilde_sq[:, :, :]
+
+wcdf_advecTermOmegaTildeSq = writeDS.createVariable(
+    'advecTermOmegaTildeSq', np.float32, ('Time', 'yh', 'xh'))
+wcdf_advecTermOmegaTildeSq.long_name = "advection term for Omega tilde squared"
+wcdf_advecTermOmegaTildeSq.units = "s^-3"
+wcdf_advecTermOmegaTildeSq[:, :, :] = advecTermOmegaTildeSq[:, :, :]
 
 wcdf_R_Dilate = writeDS.createVariable(
     'R_Dilate', np.float32, ('Time', 'yh', 'xh'))

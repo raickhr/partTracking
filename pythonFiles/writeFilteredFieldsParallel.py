@@ -54,6 +54,15 @@ if rank == 0:
     timeLen, Ylen, Xlen = np.shape(globalU)
     print('shape of the array U ', timeLen, Ylen, Xlen)
 
+    farr = np.ones(np.shape(Ylen, Xlen), dtype=float)
+    f0 = 6.49e-05
+    beta = 2.0E-11
+    
+    y = yh - np.mean(yh)
+
+    for i in range(Ylen):
+        farr[i, :] = f0 + beta*y[i]
+
     localTimeLen = timeLen//nprocs
     extra = timeLen%nprocs
     localTimeLenList = [localTimeLen] * nprocs
@@ -77,6 +86,7 @@ else:
     globalV = None
     globalh = None
     globalP = None
+    farr = None
 
     timeLen = None
     Xlen = None
@@ -92,6 +102,7 @@ else:
 timeLen = comm.bcast(timeLen, root = 0)
 Xlen = comm.bcast(Xlen, root=0)
 Ylen = comm.bcast(Ylen, root=0)
+farr = comm.bcase(farr, root=0)
 
 ellInKm = comm.bcast(ellInKm, root = 0)
 split_size = comm.bcast(split_size, root=0)
@@ -109,6 +120,11 @@ comm.Scatterv([globalV, split_size, split_disp, MPI.DOUBLE], localV, root=0)
 comm.Scatterv([globalh, split_size, split_disp, MPI.DOUBLE], localh, root=0)
 comm.Scatterv([globalP, split_size, split_disp, MPI.DOUBLE], localP, root=0)
 
+## f*U 
+farr = np.repeat(farr[np.newaxis, :, :], localTimeLen, axis=0)
+flocalU = localU * farr
+flocalV = localV * farr
+
 #Velocity gradients calculations
 localdx_U, localdy_U = getGradient(localU, dxInKm*1000, dyInKm*1000)
 localdx_V, localdy_V = getGradient(localV, dxInKm*1000, dyInKm*1000)
@@ -117,6 +133,8 @@ localdx_h, localdy_h = getGradient(localh, dxInKm*1000, dyInKm*1000)
 
 U_bar = get_filtered_Field(localU ,  ellInKm, dxInKm, dyInKm)
 V_bar = get_filtered_Field(localV ,  ellInKm, dxInKm, dyInKm)
+fU_bar = get_filtered_Field(flocalU,  ellInKm, dxInKm, dyInKm)
+fV_bar = get_filtered_Field(flocalV,  ellInKm, dxInKm, dyInKm)
 UU_bar = get_filtered_Field(localU * localU ,  ellInKm, dxInKm, dyInKm)
 VV_bar = get_filtered_Field(localV * localV ,  ellInKm, dxInKm, dyInKm)
 UV_bar = get_filtered_Field(localU * localV ,  ellInKm, dxInKm, dyInKm)
@@ -135,6 +153,8 @@ Pdy_h_bar = get_filtered_Field(localP * localdy_h, ellInKm, dxInKm, dyInKm)
 if rank == 0: 
     global_U_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
     global_V_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
+    global_fU_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
+    global_fV_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
     global_UU_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
     global_VV_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
     global_UV_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
@@ -151,6 +171,8 @@ if rank == 0:
 else:
     global_U_bar = None
     global_V_bar = None
+    global_fU_bar = None
+    global_fV_bar = None
     global_UU_bar = None
     global_VV_bar = None
     global_UV_bar = None
@@ -167,6 +189,8 @@ else:
 
 comm.Gatherv(sendbuf=U_bar, recvbuf = (global_U_bar, split_size), root=0)
 comm.Gatherv(sendbuf=V_bar, recvbuf = (global_V_bar, split_size), root=0)
+comm.Gatherv(sendbuf=fU_bar, recvbuf=(global_fU_bar, split_size), root=0)
+comm.Gatherv(sendbuf=fV_bar, recvbuf=(global_fV_bar, split_size), root=0)
 comm.Gatherv(sendbuf=UU_bar, recvbuf = (global_UU_bar, split_size), root=0)
 comm.Gatherv(sendbuf=VV_bar, recvbuf = (global_VV_bar, split_size), root=0)
 comm.Gatherv(sendbuf=UV_bar, recvbuf = (global_UV_bar, split_size), root=0)
@@ -218,6 +242,18 @@ if rank == 0:
     wcdf_V_bar.long_name = "v_bar"
     wcdf_V_bar.units = "m s^-1"
     wcdf_V_bar[:, :, :] = global_V_bar[:, :, :]
+
+    wcdf_fU_bar = writeDS.createVariable(
+        'fu_bar', np.float32, ('Time', 'yh', 'xh'))
+    wcdf_fU_bar.long_name = "fu_bar"
+    wcdf_fU_bar.units = "m s^-1"
+    wcdf_fU_bar[:, :, :] = global_fU_bar[:, :, :]
+
+    wcdf_fV_bar = writeDS.createVariable(
+        'fv_bar', np.float32, ('Time', 'yh', 'xh'))
+    wcdf_fV_bar.long_name = "v_bar"
+    wcdf_fV_bar.units = "m s^-1"
+    wcdf_fV_bar[:, :, :] = global_fV_bar[:, :, :]
 
     wcdf_h_bar = writeDS.createVariable(
         'h_bar', np.float32, ('Time', 'yh', 'xh'))
