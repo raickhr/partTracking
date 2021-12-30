@@ -43,6 +43,8 @@ tlen = len(timeVal)
 
 U_bar = np.array(ds.variables['u_bar'])
 V_bar = np.array(ds.variables['v_bar'])
+fU_bar = np.array(ds.variables['fu_bar'])
+fV_bar = np.array(ds.variables['fv_bar'])
 hU_bar = np.array(ds.variables['hu_bar'])
 hV_bar = np.array(ds.variables['hv_bar'])
 hUU_bar = np.array(ds.variables['huu_bar'])

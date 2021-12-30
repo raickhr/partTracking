@@ -52,9 +52,11 @@ if rank == 0:
     globalP = np.array(ds.variables['e'][:,:,:], dtype = float) * 9.81  # a constant factor of rho is omitted
 
     timeLen, Ylen, Xlen = np.shape(globalU)
+    print('File reading complete by processor', rank)
     print('shape of the array U ', timeLen, Ylen, Xlen)
+    sys.stdout.flush()
 
-    farr = np.ones(np.shape(Ylen, Xlen), dtype=float)
+    farr = np.ones((Ylen, Xlen), dtype=float)
     f0 = 6.49e-05
     beta = 2.0E-11
     
@@ -69,17 +71,23 @@ if rank == 0:
     split_size = [0]* nprocs
     count = 0 
 
-    print("the time axis is divided in the processors as follows")
-    while extra > 0:
-        localTimeLenList[count]+= 1
-        print('proc: {0:2d},  size of time dimension: {1:3d}'.format(count, localTimeLenList[count]))
-        extra -= 1
-        count += 1
+    if extra >0 :
+        print("All processors do not have same size data. ")
+        while extra > 0:
+            localTimeLenList[count]+= 1
+            extra -= 1
+            count += 1
+
+    
+    print("Division of work is with time dimension")
+    sys.stdout.flush()
 
     for i in range(nprocs):
+        print('Processor :', i, 'Time dimension size', localTimeLenList[i])
         split_size[i] = localTimeLenList[i] * Ylen * Xlen
 
     split_disp = np.insert(np.cumsum(split_size), 0, 0)[0:-1]
+    sys.stdout.flush()
 
 else:
     globalU = None
@@ -98,17 +106,22 @@ else:
     split_size = None
     split_disp = None
 
-
+comm.Barrier()
 timeLen = comm.bcast(timeLen, root = 0)
 Xlen = comm.bcast(Xlen, root=0)
 Ylen = comm.bcast(Ylen, root=0)
-farr = comm.bcase(farr, root=0)
-
+farr = comm.bcast(farr, root=0)
 ellInKm = comm.bcast(ellInKm, root = 0)
 split_size = comm.bcast(split_size, root=0)
 split_disp = comm.bcast(split_disp, root=0)
 
+print('arrays broadcast complete')
+sys.stdout.flush()
+
+
 localTimeLen = comm.scatter(localTimeLenList, root=0)
+print('scattering the local Time dimension size complete')
+sys.stdout.flush()
 
 localU = np.zeros((localTimeLen, Ylen, Xlen), dtype=float)
 localV = np.zeros((localTimeLen, Ylen, Xlen), dtype=float)
@@ -119,6 +132,9 @@ comm.Scatterv([globalU, split_size, split_disp, MPI.DOUBLE], localU, root=0)
 comm.Scatterv([globalV, split_size, split_disp, MPI.DOUBLE], localV, root=0)
 comm.Scatterv([globalh, split_size, split_disp, MPI.DOUBLE], localh, root=0)
 comm.Scatterv([globalP, split_size, split_disp, MPI.DOUBLE], localP, root=0)
+
+print('arrays scattering complete')
+sys.stdout.flush()
 
 ## f*U 
 farr = np.repeat(farr[np.newaxis, :, :], localTimeLen, axis=0)
@@ -133,8 +149,8 @@ localdx_h, localdy_h = getGradient(localh, dxInKm*1000, dyInKm*1000)
 
 U_bar = get_filtered_Field(localU ,  ellInKm, dxInKm, dyInKm)
 V_bar = get_filtered_Field(localV ,  ellInKm, dxInKm, dyInKm)
-fU_bar = get_filtered_Field(flocalU,  ellInKm, dxInKm, dyInKm)
-fV_bar = get_filtered_Field(flocalV,  ellInKm, dxInKm, dyInKm)
+hfU_bar = get_filtered_Field(localh * flocalU,  ellInKm, dxInKm, dyInKm)
+hfV_bar = get_filtered_Field(localh * flocalV,  ellInKm, dxInKm, dyInKm)
 UU_bar = get_filtered_Field(localU * localU ,  ellInKm, dxInKm, dyInKm)
 VV_bar = get_filtered_Field(localV * localV ,  ellInKm, dxInKm, dyInKm)
 UV_bar = get_filtered_Field(localU * localV ,  ellInKm, dxInKm, dyInKm)
@@ -153,8 +169,8 @@ Pdy_h_bar = get_filtered_Field(localP * localdy_h, ellInKm, dxInKm, dyInKm)
 if rank == 0: 
     global_U_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
     global_V_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
-    global_fU_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
-    global_fV_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
+    global_hfU_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
+    global_hfV_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
     global_UU_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
     global_VV_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
     global_UV_bar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
@@ -171,8 +187,8 @@ if rank == 0:
 else:
     global_U_bar = None
     global_V_bar = None
-    global_fU_bar = None
-    global_fV_bar = None
+    global_hfU_bar = None
+    global_hfV_bar = None
     global_UU_bar = None
     global_VV_bar = None
     global_UV_bar = None
@@ -187,10 +203,14 @@ else:
     global_Pdx_h_bar = None
     global_Pdy_h_bar = None
 
+
+print('calculation complete by rank', rank)
+sys.stdout.flush()
+
 comm.Gatherv(sendbuf=U_bar, recvbuf = (global_U_bar, split_size), root=0)
 comm.Gatherv(sendbuf=V_bar, recvbuf = (global_V_bar, split_size), root=0)
-comm.Gatherv(sendbuf=fU_bar, recvbuf=(global_fU_bar, split_size), root=0)
-comm.Gatherv(sendbuf=fV_bar, recvbuf=(global_fV_bar, split_size), root=0)
+comm.Gatherv(sendbuf=hfU_bar, recvbuf=(global_fU_bar, split_size), root=0)
+comm.Gatherv(sendbuf=hfV_bar, recvbuf=(global_fV_bar, split_size), root=0)
 comm.Gatherv(sendbuf=UU_bar, recvbuf = (global_UU_bar, split_size), root=0)
 comm.Gatherv(sendbuf=VV_bar, recvbuf = (global_VV_bar, split_size), root=0)
 comm.Gatherv(sendbuf=UV_bar, recvbuf = (global_UV_bar, split_size), root=0)
@@ -207,6 +227,9 @@ comm.Gatherv(sendbuf=Pdy_h_bar, recvbuf = (global_Pdy_h_bar, split_size), root=0
 
 
 if rank == 0:
+    print('Gathering complete.')
+    sys.stdout.flush()
+     
     writeDS = Dataset(writeFileName, 'w', format='NETCDF4_CLASSIC')
 
     writeDS.createDimension('Time', None)
@@ -246,13 +269,13 @@ if rank == 0:
     wcdf_fU_bar = writeDS.createVariable(
         'fu_bar', np.float32, ('Time', 'yh', 'xh'))
     wcdf_fU_bar.long_name = "fu_bar"
-    wcdf_fU_bar.units = "m s^-1"
+    wcdf_fU_bar.units = "m s^-2"
     wcdf_fU_bar[:, :, :] = global_fU_bar[:, :, :]
 
     wcdf_fV_bar = writeDS.createVariable(
         'fv_bar', np.float32, ('Time', 'yh', 'xh'))
     wcdf_fV_bar.long_name = "v_bar"
-    wcdf_fV_bar.units = "m s^-1"
+    wcdf_fV_bar.units = "m s^-2"
     wcdf_fV_bar[:, :, :] = global_fV_bar[:, :, :]
 
     wcdf_h_bar = writeDS.createVariable(
