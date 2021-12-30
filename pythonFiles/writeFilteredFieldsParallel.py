@@ -209,8 +209,8 @@ sys.stdout.flush()
 
 comm.Gatherv(sendbuf=U_bar, recvbuf = (global_U_bar, split_size), root=0)
 comm.Gatherv(sendbuf=V_bar, recvbuf = (global_V_bar, split_size), root=0)
-comm.Gatherv(sendbuf=hfU_bar, recvbuf=(global_fU_bar, split_size), root=0)
-comm.Gatherv(sendbuf=hfV_bar, recvbuf=(global_fV_bar, split_size), root=0)
+comm.Gatherv(sendbuf=hfU_bar, recvbuf=(global_hfU_bar, split_size), root=0)
+comm.Gatherv(sendbuf=hfV_bar, recvbuf=(global_hfV_bar, split_size), root=0)
 comm.Gatherv(sendbuf=UU_bar, recvbuf = (global_UU_bar, split_size), root=0)
 comm.Gatherv(sendbuf=VV_bar, recvbuf = (global_VV_bar, split_size), root=0)
 comm.Gatherv(sendbuf=UV_bar, recvbuf = (global_UV_bar, split_size), root=0)
@@ -266,17 +266,17 @@ if rank == 0:
     wcdf_V_bar.units = "m s^-1"
     wcdf_V_bar[:, :, :] = global_V_bar[:, :, :]
 
-    wcdf_fU_bar = writeDS.createVariable(
-        'fu_bar', np.float32, ('Time', 'yh', 'xh'))
-    wcdf_fU_bar.long_name = "fu_bar"
-    wcdf_fU_bar.units = "m s^-2"
-    wcdf_fU_bar[:, :, :] = global_fU_bar[:, :, :]
+    wcdf_hfU_bar = writeDS.createVariable(
+        'hfu_bar', np.float32, ('Time', 'yh', 'xh'))
+    wcdf_hfU_bar.long_name = "hfu_bar"
+    wcdf_hfU_bar.units = "m^2 s^-2"
+    wcdf_hfU_bar[:, :, :] = global_hfU_bar[:, :, :]
 
-    wcdf_fV_bar = writeDS.createVariable(
-        'fv_bar', np.float32, ('Time', 'yh', 'xh'))
-    wcdf_fV_bar.long_name = "v_bar"
-    wcdf_fV_bar.units = "m s^-2"
-    wcdf_fV_bar[:, :, :] = global_fV_bar[:, :, :]
+    wcdf_hfV_bar = writeDS.createVariable(
+        'hfv_bar', np.float32, ('Time', 'yh', 'xh'))
+    wcdf_hfV_bar.long_name = "v_bar"
+    wcdf_hfV_bar.units = "m^2 s^-2"
+    wcdf_hfV_bar[:, :, :] = global_hfV_bar[:, :, :]
 
     wcdf_h_bar = writeDS.createVariable(
         'h_bar', np.float32, ('Time', 'yh', 'xh'))
