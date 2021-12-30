@@ -274,7 +274,7 @@ if rank == 0:
 
     wcdf_hfV_bar = writeDS.createVariable(
         'hfv_bar', np.float32, ('Time', 'yh', 'xh'))
-    wcdf_hfV_bar.long_name = "v_bar"
+    wcdf_hfV_bar.long_name = "hfv_bar"
     wcdf_hfV_bar.units = "m^2 s^-2"
     wcdf_hfV_bar[:, :, :] = global_hfV_bar[:, :, :]
 

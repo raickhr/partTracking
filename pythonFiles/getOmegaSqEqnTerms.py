@@ -43,8 +43,8 @@ tlen = len(timeVal)
 
 U_bar = np.array(ds.variables['u_bar'])
 V_bar = np.array(ds.variables['v_bar'])
-fU_bar = np.array(ds.variables['fu_bar'])
-fV_bar = np.array(ds.variables['fv_bar'])
+hfU_bar = np.array(ds.variables['hfu_bar'])
+hfV_bar = np.array(ds.variables['hfv_bar'])
 hU_bar = np.array(ds.variables['hu_bar'])
 hV_bar = np.array(ds.variables['hv_bar'])
 hUU_bar = np.array(ds.variables['huu_bar'])
@@ -58,6 +58,9 @@ Pdyh_bar = np.array(ds.variables['pdy_h_bar'])
 
 U_tilde = hU_bar/h_bar
 V_tilde = hV_bar/h_bar
+
+fU_tilde = hfU_bar/h_bar
+fV_tilde = hfV_bar/h_bar
 
 UU_tilde = hUU_bar/h_bar
 UV_tilde = hUV_bar/h_bar
@@ -85,8 +88,10 @@ d_dt_omega_tilde_sq[tlen-1, :, :] = float('nan')
 advecTermOmegaTildeSq = U_tilde * d_dx_omega_tilde_sq + V_tilde * d_dy_omega_tilde_sq
 
 ## Dilation term
-divUbar = getDiv(U_bar, V_bar, dxInKm*1000, dyInKm*1000)
-R_Dilate = - h_bar * divUbar * omega_tilde_sq
+divUtilde = getDiv(U_tilde, V_tilde, dxInKm*1000, dyInKm*1000)
+divfUtilde = getDiv(fU_tilde, fV_tilde, dxInKm*1000, dyInKm*1000)
+
+R_Dilate = - h_bar * divUtilde * omega_tilde_sq - h_bar * omega_tilde * divfUtilde
 
 ## Baroclinic term
 R_Barocl = omega_tilde * \
