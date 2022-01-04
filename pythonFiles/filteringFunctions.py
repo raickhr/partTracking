@@ -99,6 +99,7 @@ def getZCurl(fieldx, fieldy, dx, dy):
 
     gradx = (np.roll(fieldy, -1, axis=xaxis) -
              np.roll(fieldy, 1, axis=xaxis))/(2*dx)
+             
     grady = (np.roll(fieldx, -1, axis=yaxis) -
              np.roll(fieldx, 1, axis=yaxis))/(2*dy)
 
