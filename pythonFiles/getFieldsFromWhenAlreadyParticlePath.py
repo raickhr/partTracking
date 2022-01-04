@@ -15,11 +15,13 @@ args = parser.parse_args()
 
 configFile = args.file
 
-config = configClass(configFile)
+config = configClass2(configFile)
 
-nFiles = len(config.filteredFileNameList)
+nFiles = config.getnFiles()
 
-ds = Dataset(config.locationFolder + config.filteredFileNameList[0])
+firstFile = config.getFilteredFileName(0)
+
+ds = Dataset(firstFile)
 xh = np.array(ds.variables['xh'])
 yh = np.array(ds.variables['yh'])
 
@@ -30,24 +32,16 @@ xlen = len(xh)
 ylen = len(yh)
 
 for fileNum in range(nFiles):
-    print('fileCount', fileNum, config.filteredFileNameList[fileNum])
-    ds = Dataset(config.locationFolder + config.filteredFileNameList[fileNum])
-    suffix = ''
-    if config.timeIntegrationMethod == 'RK4':
-        suffix = 'RK4'
-    elif config.timeIntegrationMethod == 'PCE':
-        suffix = 'PCE'
-
-    wFname = config.locationFolder + '/' + config.filteredFileNameList[fileNum].rstrip('.nc') + \
-        '_{0:03d}p_{1:s}_{2:02d}substeps_{3:s}.nc'.format(config.nParticles, suffix, config.nSubTimeStep,
-                                                          config.spaceInterpolation)
-
-    stripText = '_{0:03d}p_{1:s}_{2:02d}substeps_{3:s}.nc'.format(config.nParticles, suffix, config.nSubTimeStep,
-                                                                       config.spaceInterpolation)
-
-    ds2 = Dataset(wFname)
+    print('fileCount', fileNum ) 
     
-    wFname_2 = wFname.rstrip(stripText) + '_pTrack.nc'    
+
+    filteredFile = config.getFilteredFileName(fileNum)
+    ds = Dataset(filteredFile)
+    
+    particleFile = config.getParticleFileName(fileNum)
+    ds2 = Dataset(particleFile)
+
+    writeFile = config.makeWriteFileName(fileNum)
 
     timeVal = np.array(ds.variables['Time'])
     timeUnits = ds.variables['Time'].units
@@ -56,11 +50,17 @@ for fileNum in range(nFiles):
     all_xpos = np.array(ds2.variables['xpos'][:,:], dtype= float)
     all_ypos = np.array(ds2.variables['ypos'][:, :], dtype=float)
 
+    checkNtimeLen, checkNparticles = np.shape(all_xpos)
+
+    if config.nParticles != checkNparticles or timelen != checkNtimeLen:
+        print('error in size of particles or time')
+        sys.exit()
+
     writeFieldsVals = np.zeros(
         (config.nWriteFields, timelen, config.nParticles), dtype=float)
 
     for timeIndex in range(timelen):
-            print('time count', timeIndex)
+            #print('time count', timeIndex)
             cur_xpos = all_xpos[timeIndex, :]
             cur_ypos = all_ypos[timeIndex, :]
 
@@ -81,7 +81,7 @@ for fileNum in range(nFiles):
             writeFieldsVals[:, timeIndex, :] = allInterPolatedFields[:, :]
 
             
-    writeDS = Dataset(wFname_2, 'w', format='NETCDF4_CLASSIC')
+    writeDS = Dataset(writeFile, 'w', format='NETCDF4_CLASSIC')
     writeDS.createDimension('Time', None)
     writeDS.createDimension('PID', config.nParticles)
 

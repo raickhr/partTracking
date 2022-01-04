@@ -1,0 +1,30 @@
+{
+    "particleFileLocationFolder" :  "../particlTrackVortEqnTerms",     
+    "particleFilePrefix": "prog_",
+    "particleFileSuffix": "_VorticityEqnTerms_4O_500p_PCE_01substeps_L4.nc",
+
+    "filteredFileLocationFolder": "../omgSqTerms_ell0",
+    "filteredFilePrefix" :  "prog_",
+    "filteredFileSuffix": "_OmegaEqnTerms_0ell_4O.nc",
+    
+    "fileStartCount" :  1,
+    "fileEndCount" :  72,
+    
+    "nParticles" :  500,
+    
+    "writeLocation" :  "./",
+    "writeFilePrefix" :  "prog_",
+    "writeFileSuffix" :  "partTrack_ell0.nc",
+    "nWriteFields" :  9,
+    "writeFieldsName" :  [
+        "d_dt_omega_tilde_sq",
+        "advecTermOmegaTildeSq",
+        "R_Dilate",
+        "R_Barocl",
+        "Omega_tilde_sq",
+        "LS_Drag",
+        "SS_Drag",
+        "R_substress",
+        "h_bar"
+    ]
+} 

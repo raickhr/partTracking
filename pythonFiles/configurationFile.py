@@ -76,15 +76,75 @@ class configClass:
 
         return xpos, ypos
 
+class configClass2:
+    def __init__(self, fileName):
+        # Opening JSON file
+        f = open(fileName)
+        data = json.load(f)
+
+        #particle file location Folder
+        self.particleFileLocationFolder = data["particleFileLocationFolder"]
+
+        #filtered file location Folder
+        self.filteredFileLocationFolder = data["filteredFileLocationFolder"]
+
+        #particle file suffix
+        self.particleFileSuffix = data["particleFileSuffix"]
+
+        #filtered file suffix
+        self.filteredFileSuffix = data["filteredFileSuffix"]
+
+        #particle file suffix
+        self.particleFilePrefix = data["particleFilePrefix"]
+
+        #filtered file suffix
+        self.filteredFilePrefix = data["filteredFilePrefix"]
+
+        #particle file suffix
+        self.fileStartCount = data["fileStartCount"]
+
+        #filtered file suffix
+        self.fileEndCount = data["fileEndCount"]
+
+        #number of particles
+        self.nParticles = data["nParticles"]
+
+        #write folder location
+        self.writeLocation = data["writeLocation"]
+
+        #write file prefix
+        self.writeFilePrefix = data["writeFilePrefix"]
+
+        #write file suffix
+        self.writeFileSuffix = data["writeFileSuffix"]
+
+        #fields to be written in output
+        self.nWriteFields = data["nWriteFields"]
+        self.writeFieldsName = data["writeFieldsName"]
+
+        f.close()
+
+    def getnFiles(self):
+        return self.fileEndCount - self.fileStartCount + 1
+
+    def getParticleFileName(self, fileCount):
+        #fileCount starts from zero
+        fileNumber = self.fileStartCount + fileCount
+        fileName = self.particleFileLocationFolder + '/' + self.particleFilePrefix + \
+            '{0:03d}'.format(fileNumber) + self.particleFileSuffix
+        return fileName
+
+    def getFilteredFileName(self, fileCount):
+        #fileCount starts from zero
+        fileNumber = self.fileStartCount + fileCount
+        fileName = self.filteredFileLocationFolder + '/' + self.filteredFilePrefix + \
+            '{0:03d}'.format(fileNumber) + self.filteredFileSuffix
+        return fileName
 
 
-
-
-
-
-
-
-
-
-
-
+    def makeWriteFileName(self, fileCount):
+        #fileCount starts from zero
+        fileNumber = self.fileStartCount + fileCount
+        fileName = self.writeLocation + '/' + self.writeFilePrefix + \
+            '{0:03d}'.format(fileNumber) + self.writeFileSuffix
+        return fileName
