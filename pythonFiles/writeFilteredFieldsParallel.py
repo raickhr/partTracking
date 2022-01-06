@@ -49,7 +49,7 @@ if rank == 0:
     globalU = np.array(ds.variables['u'][:,:,:], dtype = float)
     globalV = np.array(ds.variables['v'][:,:,:], dtype = float)
     globalh = np.array(ds.variables['h'][:,:,:], dtype = float)
-    globalP = np.array(ds.variables['e'][:, :, :], dtype=float) * 9.81 * 1031.0 ## this is for first layer only
+    globalP = np.array(ds.variables['e'][:, :, :], dtype=float) * 9.81 ## rho is omitted
 
     timeLen, Ylen, Xlen = np.shape(globalU)
     print('File reading complete by processor', rank)

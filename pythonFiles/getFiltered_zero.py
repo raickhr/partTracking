@@ -38,8 +38,7 @@ timeUnits = ds.variables['Time'].units
 U = np.array(ds.variables['u'][:, :, :], dtype=float)
 V = np.array(ds.variables['v'][:, :, :], dtype=float)
 h = np.array(ds.variables['h'][:, :, :], dtype=float)
-# this is for first layer only
-P = np.array(ds.variables['e'][:, :, :], dtype=float) * 9.81 * 1031.0
+P = np.array(ds.variables['e'][:, :, :], dtype=float) * 9.81 ## constant rho is omitted
 
 timeLen, Ylen, Xlen = np.shape(U)
 print('shape of the array U ', timeLen, Ylen, Xlen)
