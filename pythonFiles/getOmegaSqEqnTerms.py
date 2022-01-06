@@ -106,8 +106,8 @@ d_dx_hbar_TauTildeUU, d_dy_hbar_TauTildeUU = getGradient(hbar_TauTildeUU , dxInK
 d_dx_hbar_TauTildeUV, d_dy_hbar_TauTildeUV = getGradient(hbar_TauTildeUV , dxInKm*1000, dyInKm*1000)
 d_dx_hbar_TauTildeVV, d_dy_hbar_TauTildeVV = getGradient(hbar_TauTildeVV , dxInKm*1000, dyInKm*1000)
 
-divhTau_x_comp = d_dx_hbar_TauTildeUU + d_dy_hbar_TauTildeUV + d_dx_hbar_TauTildeVV
-divhTau_y_comp = d_dy_hbar_TauTildeUU + d_dx_hbar_TauTildeUV + d_dy_hbar_TauTildeVV
+divhTau_x_comp = d_dx_hbar_TauTildeUU + d_dy_hbar_TauTildeUV
+divhTau_y_comp = d_dx_hbar_TauTildeUV + d_dy_hbar_TauTildeVV
 
 firstTerm = - omega_tilde * getZCurl(divhTau_x_comp, divhTau_y_comp, dxInKm*1000, dyInKm*1000)
 secondTerm = omega_tilde / h_bar * (d_dx_h_bar * divhTau_y_comp - d_dy_h_bar * divhTau_x_comp)
