@@ -47,7 +47,7 @@ RV = np.array(ds.variables['RV'])
 PV = np.array(ds.variables['PV'])
 
 
-farr = np.ones(np.shape(U),dtype=float)
+farr = np.ones(np.shape(U),dtype=np.float64)
 (tlen, ylen, xlen) = np.shape(U)
 
 y = yh - np.mean(yh)
@@ -60,6 +60,7 @@ d_dx_U, d_dy_U = getGradient(U, dxInKm*1000, dyInKm*1000)
 d_dx_V, d_dy_V = getGradient(V, dxInKm*1000, dyInKm*1000)
 
 omega = (d_dx_V - d_dy_U)
+omegaSq = omega**2
 totVort = omega + farr
 divU = getDiv(U, V, dxInKm*1000, dyInKm*1000)
 
@@ -101,17 +102,17 @@ writeDS.createDimension('Time', None)
 writeDS.createDimension('xh', 240)
 writeDS.createDimension('yh', 320)
 
-wcdf_Xh = writeDS.createVariable('xh', np.float32, ('xh'))
+wcdf_Xh = writeDS.createVariable('xh', np.float64, ('xh'))
 wcdf_Xh.long_name = 'h point nominal longitude'
 wcdf_Xh.units = 'kilometers'
 wcdf_Xh[:] = xh[:]
 
-wcdf_Yh = writeDS.createVariable('yh', np.float32, ('yh'))
+wcdf_Yh = writeDS.createVariable('yh', np.float64, ('yh'))
 wcdf_Yh.long_name = 'h point nominal latitude'
 wcdf_Yh.units = 'kilometers'
 wcdf_Yh[:] = yh[:]
 
-wcdf_Time = writeDS.createVariable('Time', np.float32, ('Time'))
+wcdf_Time = writeDS.createVariable('Time', np.float64, ('Time'))
 wcdf_Time.long_name = "Time"
 wcdf_Time.units = timeUnits
 wcdf_Time.cartesian_axis = "T"
@@ -121,136 +122,142 @@ wcdf_Time[:] = timeVal
 
 
 wcdf_u = writeDS.createVariable(
-    'u', np.float32, ('Time', 'yh', 'xh'))
+    'u', np.float64, ('Time', 'yh', 'xh'))
 wcdf_u.long_name = "u"
 wcdf_u.units = "m s^-1"
 wcdf_u[:, :, :] = U[:, :, :]
 
 wcdf_v = writeDS.createVariable(
-    'v', np.float32, ('Time', 'yh', 'xh'))
+    'v', np.float64, ('Time', 'yh', 'xh'))
 wcdf_v.long_name = "v"
 wcdf_v.units = "m s^-1"
 wcdf_v[:, :, :] = V[:, :, :]
 
 wcdf_omega = writeDS.createVariable(
-    'omega', np.float32, ('Time', 'yh', 'xh'))
+    'omega', np.float64, ('Time', 'yh', 'xh'))
 wcdf_omega.long_name = "omega"
 wcdf_omega.units = "s^-1"
 wcdf_omega[:, :, :] = omega[:, :, :]
 
+wcdf_omegaSq = writeDS.createVariable(
+    'omegaSq', np.float64, ('Time', 'yh', 'xh'))
+wcdf_omegaSq.long_name = "omega"
+wcdf_omegaSq.units = "s^-2"
+wcdf_omegaSq[:, :, :] = omegaSq[:, :, :]
+
 wcdf_totVort = writeDS.createVariable(
-    'totVort', np.float32, ('Time', 'yh', 'xh'))
+    'totVort', np.float64, ('Time', 'yh', 'xh'))
 wcdf_totVort.long_name = "total Vorticity"
 wcdf_totVort.units = "s^-1"
 wcdf_totVort[:, :, :] = totVort[:, :, :]
 
 wcdf_RV = writeDS.createVariable(
-    'RV', np.float32, ('Time', 'yh', 'xh'))
+    'RV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_RV.long_name = "RV from original output"
 wcdf_RV.units = "s^-1"
 wcdf_RV[:, :, :] = RV[:, :, :]
 
 wcdf_PV = writeDS.createVariable(
-    'PV', np.float32, ('Time', 'yh', 'xh'))
+    'PV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_PV.long_name = "PV from original output"
 wcdf_PV.units = "s^-1"
 wcdf_PV[:, :, :] = PV[:, :, :]
 
 
 wcdf_d_dt_omega = writeDS.createVariable(
-    'd_dt_omega', np.float32, ('Time', 'yh', 'xh'))
+    'd_dt_omega', np.float64, ('Time', 'yh', 'xh'))
 wcdf_d_dt_omega.long_name = "eulerian time derivative of omega"
 wcdf_d_dt_omega.units = "s^-2"
 wcdf_d_dt_omega[:, :, :] = d_dt_omega[:, :, :]
 
 wcdf_d_dt_totVort = writeDS.createVariable(
-    'd_dt_totVort', np.float32, ('Time', 'yh', 'xh'))
+    'd_dt_totVort', np.float64, ('Time', 'yh', 'xh'))
 wcdf_d_dt_totVort.long_name = "eulerian time derivative of total Vorticity"
 wcdf_d_dt_totVort.units = "s^-2"
 wcdf_d_dt_totVort[:, :, :] = d_dt_totVort[:, :, :]
 
 wcdf_d_dt_RV = writeDS.createVariable(
-    'd_dt_RV', np.float32, ('Time', 'yh', 'xh'))
+    'd_dt_RV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_d_dt_RV.long_name = "eulerian time derivative of RV from original output"
 wcdf_d_dt_RV.units = "s^-2"
 wcdf_d_dt_RV[:, :, :] = d_dt_RV[:, :, :]
 
 wcdf_d_dt_PV = writeDS.createVariable(
-    'd_dt_PV', np.float32, ('Time', 'yh', 'xh'))
+    'd_dt_PV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_d_dt_PV.long_name = "eulerian time derivative of PV from original output"
 wcdf_d_dt_PV.units = "s^-2"
 wcdf_d_dt_PV[:, :, :] = d_dt_PV[:, :, :]
 
 
 wcdf_advecTermOmega = writeDS.createVariable(
-    'advecTermOmega', np.float32, ('Time', 'yh', 'xh'))
+    'advecTermOmega', np.float64, ('Time', 'yh', 'xh'))
 wcdf_advecTermOmega.long_name = "advecTermOmega"
 wcdf_advecTermOmega.units = "s^-2"
 wcdf_advecTermOmega[:, :, :] = advecTermOmega[:, :, :]
 
 wcdf_advecTermTotVort = writeDS.createVariable(
-    'advecTermTotVort', np.float32, ('Time', 'yh', 'xh'))
+    'advecTermTotVort', np.float64, ('Time', 'yh', 'xh'))
 wcdf_advecTermTotVort.long_name = "advecTermTotVort"
 wcdf_advecTermTotVort.units = "s^-2"
 wcdf_advecTermTotVort[:, :, :] = advecTermTotVort[:, :, :]
 
 wcdf_advecTermRV = writeDS.createVariable(
-    'advecTermRV', np.float32, ('Time', 'yh', 'xh'))
+    'advecTermRV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_advecTermRV.long_name = "advecTermRV"
 wcdf_advecTermRV.units = "s^-2"
 wcdf_advecTermRV[:, :, :] = advecTermRV[:, :, :]
 
 wcdf_advecTermPV = writeDS.createVariable(
-    'advecTermPV', np.float32, ('Time', 'yh', 'xh'))
+    'advecTermPV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_advecTermPV.long_name = "advecTermPV"
 wcdf_advecTermPV.units = "s^-2"
 wcdf_advecTermPV[:, :, :] = advecTermPV[:, :, :]
 
 
 wcdf_divTermOmega = writeDS.createVariable(
-    'divTermOmega', np.float32, ('Time', 'yh', 'xh'))
+    'divTermOmega', np.float64, ('Time', 'yh', 'xh'))
 wcdf_divTermOmega.long_name = "divTermOmega"
 wcdf_divTermOmega.units = "s^-2"
 wcdf_divTermOmega[:, :, :] = divTermOmega[:, :, :]
 
 wcdf_divTermTotVort = writeDS.createVariable(
-    'divTermTotVort', np.float32, ('Time', 'yh', 'xh'))
+    'divTermTotVort', np.float64, ('Time', 'yh', 'xh'))
 wcdf_divTermTotVort.long_name = "divTermTotVort"
 wcdf_divTermTotVort.units = "s^-2"
 wcdf_divTermTotVort[:, :, :] = divTermTotVort[:, :, :]
 
 wcdf_divTermRV = writeDS.createVariable(
-    'divTermRV', np.float32, ('Time', 'yh', 'xh'))
+    'divTermRV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_divTermRV.long_name = "divTermRV"
 wcdf_divTermRV.units = "s^-2"
 wcdf_divTermRV[:, :, :] = divTermRV[:, :, :]
 
 wcdf_divTermPV = writeDS.createVariable(
-    'divTermPV', np.float32, ('Time', 'yh', 'xh'))
+    'divTermPV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_divTermPV.long_name = "divTermPV"
 wcdf_divTermPV.units = "s^-2"
 wcdf_divTermPV[:, :, :] = divTermPV[:, :, :]
 
 wcdf_viscousTermOmega = writeDS.createVariable(
-    'viscousTermOmega', np.float32, ('Time', 'yh', 'xh'))
+    'viscousTermOmega', np.float64, ('Time', 'yh', 'xh'))
 wcdf_viscousTermOmega.long_name = "viscousTermOmega"
 wcdf_viscousTermOmega.units = "s^-2"
 wcdf_viscousTermOmega[:, :, :] = viscousTermOmega[:, :, :]
 
 wcdf_viscousTermTotVort = writeDS.createVariable(
-    'viscousTermTotVort', np.float32, ('Time', 'yh', 'xh'))
+    'viscousTermTotVort', np.float64, ('Time', 'yh', 'xh'))
 wcdf_viscousTermTotVort.long_name = "divTermTotVort"
 wcdf_viscousTermTotVort.units = "s^-2"
 wcdf_viscousTermTotVort[:, :, :] = viscousTermTotVort[:, :, :]
 
 wcdf_viscousTermRV = writeDS.createVariable(
-    'viscousTermRV', np.float32, ('Time', 'yh', 'xh'))
+    'viscousTermRV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_viscousTermRV.long_name = "divTermRV"
 wcdf_viscousTermRV.units = "s^-2"
 wcdf_viscousTermRV[:, :, :] = divTermRV[:, :, :]
 
 wcdf_viscousTermPV = writeDS.createVariable(
-    'viscousTermPV', np.float32, ('Time', 'yh', 'xh'))
+    'viscousTermPV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_viscousTermPV.long_name = "viscousTermPV"
 wcdf_viscousTermPV.units = "s^-2"
 wcdf_viscousTermPV[:, :, :] = viscousTermPV[:, :, :]

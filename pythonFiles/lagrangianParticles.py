@@ -294,8 +294,8 @@ else:
 
 
 ## set the starting xpos and ypos and its field values
-xpos_prev = np.zeros((nParticles), dtype=float)
-ypos_prev = np.zeros((nParticles), dtype=float)
+xpos_prev = np.zeros((nParticles), dtype=np.float64)
+ypos_prev = np.zeros((nParticles), dtype=np.float64)
 
 Pi_Val_prev, Lambda_Val_prev = xpos_prev.copy(), ypos_prev.copy()
 Omega_tilde_Val_prev, S_tilde_sq_Val_prev = xpos_prev.copy(), ypos_prev.copy()
@@ -370,20 +370,20 @@ def updatePositon_linVel(xpos, ypos,
 
     global dt, substeps, xh, yh
 
-    Lambda_Val = np.zeros((nParticles), dtype=np.float32)
-    Pi_Val = np.zeros((nParticles), dtype=np.float32)
+    Lambda_Val = np.zeros((nParticles), dtype=np.float64)
+    Pi_Val = np.zeros((nParticles), dtype=np.float64)
 
-    RV_Val = np.zeros((nParticles), dtype=np.float32)
-    PV_Val = np.zeros((nParticles), dtype=np.float32)
+    RV_Val = np.zeros((nParticles), dtype=np.float64)
+    PV_Val = np.zeros((nParticles), dtype=np.float64)
 
-    Omega_tilde_Val = np.zeros((nParticles), dtype=np.float32)
-    S_tilde_sq_Val = np.zeros((nParticles), dtype=np.float32)
+    Omega_tilde_Val = np.zeros((nParticles), dtype=np.float64)
+    S_tilde_sq_Val = np.zeros((nParticles), dtype=np.float64)
 
-    Lambda_str_Val = np.zeros((nParticles), dtype=np.float32)
-    Lambda_rot_Val = np.zeros((nParticles), dtype=np.float32)
+    Lambda_str_Val = np.zeros((nParticles), dtype=np.float64)
+    Lambda_rot_Val = np.zeros((nParticles), dtype=np.float64)
 
-    R_barocl_Val = np.zeros((nParticles), dtype=np.float32)
-    S_baro_Val = np.zeros((nParticles), dtype=np.float32)
+    R_barocl_Val = np.zeros((nParticles), dtype=np.float64)
+    S_baro_Val = np.zeros((nParticles), dtype=np.float64)
 
     continueLoop = np.zeros((nParticles), dtype=bool)
 
@@ -476,35 +476,35 @@ def updatePositon_linVel(xpos, ypos,
            S_baro_Val, R_barocl_Val)
 
 
-xpos_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-ypos_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-xpos_next = np.zeros((nParticles, ), dtype=float)
-ypos_next = np.zeros((nParticles, ), dtype=float)
+xpos_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+ypos_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+xpos_next = np.zeros((nParticles, ), dtype=np.float64)
+ypos_next = np.zeros((nParticles, ), dtype=np.float64)
 
-pi_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-lambda_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-pi_next = np.zeros((nParticles ), dtype=float)
-lambda_next = np.zeros((nParticles ), dtype=float)
+pi_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+lambda_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+pi_next = np.zeros((nParticles ), dtype=np.float64)
+lambda_next = np.zeros((nParticles ), dtype=np.float64)
 
-rv_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-pv_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-rv_next = np.zeros((nParticles ), dtype=float)
-pv_next = np.zeros((nParticles ), dtype=float)
+rv_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+pv_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+rv_next = np.zeros((nParticles ), dtype=np.float64)
+pv_next = np.zeros((nParticles ), dtype=np.float64)
 
-omega_tilde_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-s_tilde_sq_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-omega_tilde_next = np.zeros((nParticles ), dtype=float)
-s_tilde_sq_next = np.zeros((nParticles ), dtype=float)
+omega_tilde_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+s_tilde_sq_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+omega_tilde_next = np.zeros((nParticles ), dtype=np.float64)
+s_tilde_sq_next = np.zeros((nParticles ), dtype=np.float64)
 
-lambda_str_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-lambda_rot_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-lambda_str_next = np.zeros((nParticles ), dtype=float)
-lambda_rot_next = np.zeros((nParticles ), dtype=float)
+lambda_str_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+lambda_rot_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+lambda_str_next = np.zeros((nParticles ), dtype=np.float64)
+lambda_rot_next = np.zeros((nParticles ), dtype=np.float64)
 
-r_barocl_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-s_baro_Vals = np.zeros((timelen, nParticles, ), dtype=float)
-r_barocl_next = np.zeros((nParticles ), dtype=float)
-s_baro_next = np.zeros((nParticles ), dtype=float)
+r_barocl_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+s_baro_Vals = np.zeros((timelen, nParticles, ), dtype=np.float64)
+r_barocl_next = np.zeros((nParticles ), dtype=np.float64)
+s_baro_next = np.zeros((nParticles ), dtype=np.float64)
 
 for t in range(0,timelen):
     print('time :', t)
@@ -549,40 +549,40 @@ writeDS = Dataset(wFname, 'w', format='NETCDF4_CLASSIC')
 writeDS.createDimension('Time', None)
 writeDS.createDimension('PID', nParticles)
 
-wCDF_Time = writeDS.createVariable('Time', np.float32, ('Time'))
+wCDF_Time = writeDS.createVariable('Time', np.float64, ('Time'))
 wCDF_Time.units = timeUnits
 
-wCDF_xpos = writeDS.createVariable('xpos', np.float32, ('Time','PID'))
-wCDF_ypos = writeDS.createVariable('ypos', np.float32, ('Time', 'PID'))
-wCDF_nxpos = writeDS.createVariable('xpos_next', np.float32, ('PID'))
-wCDF_nypos = writeDS.createVariable('ypos_next', np.float32, ('PID'))
+wCDF_xpos = writeDS.createVariable('xpos', np.float64, ('Time','PID'))
+wCDF_ypos = writeDS.createVariable('ypos', np.float64, ('Time', 'PID'))
+wCDF_nxpos = writeDS.createVariable('xpos_next', np.float64, ('PID'))
+wCDF_nypos = writeDS.createVariable('ypos_next', np.float64, ('PID'))
 
 
-wCDF_Lambda = writeDS.createVariable('Lambda', np.float32, ('Time', 'PID'))
-wCDF_Pi = writeDS.createVariable('Pi', np.float32, ('Time', 'PID'))
-wCDF_Lambda_next = writeDS.createVariable('Lambda_next', np.float32, ('PID'))
-wCDF_Pi_next = writeDS.createVariable('Pi_next', np.float32, ('PID'))
+wCDF_Lambda = writeDS.createVariable('Lambda', np.float64, ('Time', 'PID'))
+wCDF_Pi = writeDS.createVariable('Pi', np.float64, ('Time', 'PID'))
+wCDF_Lambda_next = writeDS.createVariable('Lambda_next', np.float64, ('PID'))
+wCDF_Pi_next = writeDS.createVariable('Pi_next', np.float64, ('PID'))
 
 
-wCDF_RV = writeDS.createVariable('RV', np.float32, ('Time', 'PID'))
-wCDF_PV = writeDS.createVariable('PV', np.float32, ('Time', 'PID'))
-wCDF_RV_next = writeDS.createVariable('RV_next', np.float32, ('PID'))
-wCDF_PV_next = writeDS.createVariable('PV_next', np.float32, ('PID'))
+wCDF_RV = writeDS.createVariable('RV', np.float64, ('Time', 'PID'))
+wCDF_PV = writeDS.createVariable('PV', np.float64, ('Time', 'PID'))
+wCDF_RV_next = writeDS.createVariable('RV_next', np.float64, ('PID'))
+wCDF_PV_next = writeDS.createVariable('PV_next', np.float64, ('PID'))
 
-wCDF_Omega_tilde = writeDS.createVariable('Omega_tilde', np.float32, ('Time', 'PID'))
-wCDF_S_tilde_sq = writeDS.createVariable('S_tilde_sq', np.float32, ('Time', 'PID'))
-wCDF_Omega_tilde_next = writeDS.createVariable('Omega_tilde_next', np.float32, ('PID'))
-wCDF_S_tilde_sq_next = writeDS.createVariable('S_tilde_sq_next', np.float32, ('PID'))
+wCDF_Omega_tilde = writeDS.createVariable('Omega_tilde', np.float64, ('Time', 'PID'))
+wCDF_S_tilde_sq = writeDS.createVariable('S_tilde_sq', np.float64, ('Time', 'PID'))
+wCDF_Omega_tilde_next = writeDS.createVariable('Omega_tilde_next', np.float64, ('PID'))
+wCDF_S_tilde_sq_next = writeDS.createVariable('S_tilde_sq_next', np.float64, ('PID'))
 
-wCDF_Lambda_str = writeDS.createVariable('Lambda_str', np.float32, ('Time', 'PID'))
-wCDF_Lambda_rot = writeDS.createVariable('Lambda_rot', np.float32, ('Time', 'PID'))
-wCDF_Lambda_str_next = writeDS.createVariable('Lambda_str_next', np.float32, ('PID'))
-wCDF_Lambda_rot_next = writeDS.createVariable('Lambda_rot_next', np.float32, ('PID'))
+wCDF_Lambda_str = writeDS.createVariable('Lambda_str', np.float64, ('Time', 'PID'))
+wCDF_Lambda_rot = writeDS.createVariable('Lambda_rot', np.float64, ('Time', 'PID'))
+wCDF_Lambda_str_next = writeDS.createVariable('Lambda_str_next', np.float64, ('PID'))
+wCDF_Lambda_rot_next = writeDS.createVariable('Lambda_rot_next', np.float64, ('PID'))
 
-wCDF_R_barocl = writeDS.createVariable('R_Barocl', np.float32, ('Time', 'PID'))
-wCDF_S_baro = writeDS.createVariable('S_Baro', np.float32, ('Time', 'PID'))
-wCDF_R_barocl_next = writeDS.createVariable('R_Barocl_next', np.float32, ('PID'))
-wCDF_S_baro_next = writeDS.createVariable('S_Baro_next', np.float32, ('PID'))
+wCDF_R_barocl = writeDS.createVariable('R_Barocl', np.float64, ('Time', 'PID'))
+wCDF_S_baro = writeDS.createVariable('S_Baro', np.float64, ('Time', 'PID'))
+wCDF_R_barocl_next = writeDS.createVariable('R_Barocl_next', np.float64, ('PID'))
+wCDF_S_baro_next = writeDS.createVariable('S_Baro_next', np.float64, ('PID'))
 
 
 wCDF_Time[0:timelen] = timeVal[0:timelen]

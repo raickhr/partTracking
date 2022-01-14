@@ -39,7 +39,7 @@ def get_filtered_Field(Pa, filterLength, gridSizeX, gridSizeY):
 
     (timeLen, Ylen, Xlen) = np.shape(Pa)
 
-    PaBar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
+    PaBar = np.zeros((timeLen, Ylen, Xlen), dtype=np.float64)
 
     kernel = get_Kernel(filterLength, gridSizeX, gridSizeY)
     for i in range(timeLen):
@@ -55,7 +55,7 @@ def getInterpolated(field, oldX, oldY, newX, newY):
     timelen = np.shape(field)[0]
     Xlen = len(newX)
     Ylen = len(newY)
-    fieldnew = np.zeros((timelen, Ylen, Xlen), dtype=float)
+    fieldnew = np.zeros((timelen, Ylen, Xlen), dtype=np.float64)
     for i in range(timelen):
         #f = interpolate.interp2d(oldX, oldY, field[i, :, :], kind='linear')
         f = interpolate.RectBivariateSpline(

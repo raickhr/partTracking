@@ -50,7 +50,7 @@ class configClass:
                 rows.append(row)
             file.close()
 
-            rows = np.array(rows, dtype=float)
+            rows = np.array(rows, dtype=np.float64)
 
             xpos = rows[:, 0]
             ypos = rows[:, 1]

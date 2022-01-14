@@ -7,8 +7,8 @@ dyInKm = 5
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--inputFile", "-f", type=str, default='prog_RequiredFieldsOnly_4FilteredFields.nc', action='store',
-                    help="this is the output file after filtering")
+parser.add_argument("--inputFile", "-f", type=str, default='prog_RequiredFieldsOnly.nc', action='store',
+                    help="this is the output file from MOM6")
 
 parser.add_argument("--fldLoc", "-l", type=str, default='.', action='store',
                     help="this is the location of the output file from MOM6")
@@ -16,20 +16,15 @@ parser.add_argument("--fldLoc", "-l", type=str, default='.', action='store',
 parser.add_argument("--ellInKm", "-e", type=int, default=100, action='store',
                     help="this is the filterlength")
 
-parser.add_argument("--rho", "-r", type=float, default=1031.0, action='store',
-                    help="this is the density of the layer")
-
 args = parser.parse_args()
 
 fileName = args.inputFile
 fldLoc = args.fldLoc
 ellInKm = args.ellInKm
-rho = args.rho
 
 readFileName = fldLoc + '/' + fileName
 writeFileName = fldLoc + '/' + \
-    fileName.replace("_FilteredFields_4O.nc",
-                     "_OmegaEqnTerms_4O.nc")
+    fileName.replace('_RequiredFieldsOnly_4O.nc', '_FilteredFields_0ell_4O.nc')
 
 ds = Dataset(readFileName)
 
@@ -38,23 +33,54 @@ yh = np.array(ds.variables['yh'])
 timeVal = np.array(ds.variables['Time'])
 timeUnits = ds.variables['Time'].units
 
-dt = timeVal[1] - timeVal[0]
-tlen = len(timeVal)
+U = np.array(ds.variables['u'][:, :, :], dtype=np.float64)
+V = np.array(ds.variables['v'][:, :, :], dtype=np.float64)
+h = np.array(ds.variables['h'][:, :, :], dtype=np.float64)
+P = np.array(ds.variables['e'][:, :, :], dtype=np.float64) * \
+    9.81  # constant rho is omitted
 
-U_bar = np.array(ds.variables['u_bar'])
-V_bar = np.array(ds.variables['v_bar'])
-hfU_bar = np.array(ds.variables['hfu_bar'])
-hfV_bar = np.array(ds.variables['hfv_bar'])
-hU_bar = np.array(ds.variables['hu_bar'])
-hV_bar = np.array(ds.variables['hv_bar'])
-hUU_bar = np.array(ds.variables['huu_bar'])
-hUV_bar = np.array(ds.variables['huv_bar'])
-hVV_bar = np.array(ds.variables['hvv_bar'])
-h_bar = np.array(ds.variables['h_bar'])
-hP_bar = np.array(ds.variables['hp_bar'])
-P_bar = np.array(ds.variables['p_bar'])
-Pdxh_bar = np.array(ds.variables['pdx_h_bar'])
-Pdyh_bar = np.array(ds.variables['pdy_h_bar'])
+timeLen, Ylen, Xlen = np.shape(U)
+print('shape of the array U ', timeLen, Ylen, Xlen)
+sys.stdout.flush()
+
+farr = np.ones((Ylen, Xlen), dtype=np.float64)
+f0 = 6.49e-05
+beta = 2.0E-11
+
+y = yh - np.mean(yh)
+
+for i in range(Ylen):
+    farr[i, :] = f0 + beta*y[i]
+
+
+## f*U
+farr = np.repeat(farr[np.newaxis, :, :], timeLen, axis=0)
+fU = U * farr
+fV = V * farr
+
+#Velocity gradients calculations
+dx_U, dy_U = getGradient(U, dxInKm*1000, dyInKm*1000)
+dx_V, dy_V = getGradient(V, dxInKm*1000, dyInKm*1000)
+
+dx_h, dy_h = getGradient(h, dxInKm*1000, dyInKm*1000)
+
+U_bar = U
+V_bar = V
+hfU_bar = h * fU
+hfV_bar = h * fV
+UU_bar = U * U
+VV_bar = V * V
+UV_bar = U * V
+hU_bar = h * U
+hV_bar = h * V
+hUU_bar = h * U * U
+hUV_bar = h * U * V
+hVV_bar = h * V * V
+h_bar = h
+P_bar = P
+hP_bar = h * P
+Pdx_h_bar = P * dx_h
+Pdy_h_bar = P * dy_h
 
 U_tilde = hU_bar/h_bar
 V_tilde = hV_bar/h_bar
@@ -76,16 +102,17 @@ d_dx_U_bar, d_dy_U_bar = getGradient(U_bar, dxInKm*1000, dyInKm*1000)
 d_dx_V_bar, d_dy_V_bar = getGradient(V_bar, dxInKm*1000, dyInKm*1000)
 
 
-
 omega_tilde = d_dx_V_tilde - d_dy_U_tilde
 omega_tilde_sq = omega_tilde ** 2
 omega_bar = d_dx_V_bar - d_dy_U_bar
 
-d_dx_omega_tilde_sq, d_dy_omega_tilde_sq = getGradient(omega_tilde_sq, dxInKm*1000, dyInKm*1000)
+d_dx_omega_tilde_sq, d_dy_omega_tilde_sq = getGradient(
+    omega_tilde_sq, dxInKm*1000, dyInKm*1000)
 d_dt_omega_tilde_sq = (np.roll(omega_tilde_sq, -1, axis=0) - omega_tilde_sq)/dt
 d_dt_omega_tilde_sq[tlen-1, :, :] = float('nan')
 
-advecTermOmegaTildeSq = U_tilde * d_dx_omega_tilde_sq + V_tilde * d_dy_omega_tilde_sq
+advecTermOmegaTildeSq = U_tilde * \
+    d_dx_omega_tilde_sq + V_tilde * d_dy_omega_tilde_sq
 
 ## Dilation term
 divUtilde = getDiv(U_tilde, V_tilde, dxInKm*1000, dyInKm*1000)
@@ -102,22 +129,27 @@ hbar_TauTildeUU = h_bar * (UU_tilde - U_tilde * U_tilde)
 hbar_TauTildeUV = h_bar * (UV_tilde - U_tilde * V_tilde)
 hbar_TauTildeVV = h_bar * (VV_tilde - V_tilde * V_tilde)
 
-d_dx_hbar_TauTildeUU, d_dy_hbar_TauTildeUU = getGradient(hbar_TauTildeUU , dxInKm*1000, dyInKm*1000)
-d_dx_hbar_TauTildeUV, d_dy_hbar_TauTildeUV = getGradient(hbar_TauTildeUV , dxInKm*1000, dyInKm*1000)
-d_dx_hbar_TauTildeVV, d_dy_hbar_TauTildeVV = getGradient(hbar_TauTildeVV , dxInKm*1000, dyInKm*1000)
+d_dx_hbar_TauTildeUU, d_dy_hbar_TauTildeUU = getGradient(
+    hbar_TauTildeUU, dxInKm*1000, dyInKm*1000)
+d_dx_hbar_TauTildeUV, d_dy_hbar_TauTildeUV = getGradient(
+    hbar_TauTildeUV, dxInKm*1000, dyInKm*1000)
+d_dx_hbar_TauTildeVV, d_dy_hbar_TauTildeVV = getGradient(
+    hbar_TauTildeVV, dxInKm*1000, dyInKm*1000)
 
 divhTau_x_comp = d_dx_hbar_TauTildeUU + d_dy_hbar_TauTildeUV
 divhTau_y_comp = d_dx_hbar_TauTildeUV + d_dy_hbar_TauTildeVV
 
-firstTerm = - omega_tilde * getZCurl(divhTau_x_comp, divhTau_y_comp, dxInKm*1000, dyInKm*1000)
-secondTerm = omega_tilde / h_bar * (d_dx_h_bar * divhTau_y_comp - d_dy_h_bar * divhTau_x_comp)
+firstTerm = - omega_tilde * \
+    getZCurl(divhTau_x_comp, divhTau_y_comp, dxInKm*1000, dyInKm*1000)
+secondTerm = omega_tilde / h_bar * \
+    (d_dx_h_bar * divhTau_y_comp - d_dy_h_bar * divhTau_x_comp)
 
 R_substress = firstTerm + secondTerm
 
 
-## LS_Drag 
+## LS_Drag
 
-LS_Drag = omega_tilde *(d_dx_P_bar * d_dy_h_bar - d_dy_P_bar * d_dx_h_bar)
+LS_Drag = omega_tilde * (d_dx_P_bar * d_dy_h_bar - d_dy_P_bar * d_dx_h_bar)
 
 ## SS_Drag
 tau_P_gradh_xComp = Pdxh_bar - (P_bar*d_dx_h_bar)
@@ -126,7 +158,8 @@ tau_P_gradh_yComp = Pdyh_bar - (P_bar*d_dy_h_bar)
 firstTerm = omega_tilde * \
     getZCurl(tau_P_gradh_xComp, tau_P_gradh_yComp,
              dxInKm*1000, dyInKm*1000)
-secondTerm = - omega_tilde/(h_bar) * (d_dx_h_bar * tau_P_gradh_yComp - d_dy_h_bar * tau_P_gradh_xComp)
+secondTerm = - omega_tilde / \
+    (h_bar) * (d_dx_h_bar * tau_P_gradh_yComp - d_dy_h_bar * tau_P_gradh_xComp)
 SS_Drag = firstTerm + secondTerm
 
 

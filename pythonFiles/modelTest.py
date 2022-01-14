@@ -41,7 +41,7 @@ def get_filtered_Field(Pa, filterLength, gridSizeX, gridSizeY):
 
     (timeLen, Ylen, Xlen) = np.shape(Pa)
 
-    PaBar = np.zeros((timeLen, Ylen, Xlen), dtype=float)
+    PaBar = np.zeros((timeLen, Ylen, Xlen), dtype=np.float64)
 
     kernel = get_Kernel(filterLength, gridSizeX, gridSizeY)
     for i in range(timeLen):
@@ -55,7 +55,7 @@ def getInterpolated(field, oldX, oldY, newX, newY):
     timelen = np.shape(field)[0]
     Xlen = len(newX)
     Ylen = len(newY)
-    fieldnew = np.zeros((timelen, Ylen, Xlen), dtype=float)
+    fieldnew = np.zeros((timelen, Ylen, Xlen), dtype=np.float64)
     for i in range(timelen):
         f = interpolate.interp2d(oldX, oldY, field[i, :, :], kind='linear')
         fieldnew[i, :, :] = f(newX, newY)
@@ -114,11 +114,11 @@ timeUnits = ds.variables['Time'].units
 
 timeLen = len(timeVal)
 
-allUbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=float)
-allVbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=float)
-allhbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=float)
-allhUbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=float)
-allhVbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=float)
+allUbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=np.float64)
+allVbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=np.float64)
+allhbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=np.float64)
+allhUbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=np.float64)
+allhVbar = np.zeros((ellLen, timeLen, Ylen, Xlen), dtype=np.float64)
 
 for ellIndx in range(ellLen):
     ell = ellList[ellIndx]
@@ -137,17 +137,17 @@ writeDS.createDimension('xh', Xlen)
 writeDS.createDimension('yh', Ylen)
 writeDS.createDimension('ell', ellLen)
 
-wcdf_Xh = writeDS.createVariable('xh', np.float32, ('xh'))
+wcdf_Xh = writeDS.createVariable('xh', np.float64, ('xh'))
 wcdf_Xh.long_name = 'h point nominal longitude'
 wcdf_Xh.units = 'kilometers'
 wcdf_Xh[:] = xh[:]
 
-wcdf_Yh = writeDS.createVariable('yh', np.float32, ('yh'))
+wcdf_Yh = writeDS.createVariable('yh', np.float64, ('yh'))
 wcdf_Yh.long_name = 'h point nominal latitude'
 wcdf_Yh.units = 'kilometers'
 wcdf_Yh[:] = yh[:]
 
-wcdf_Time = writeDS.createVariable('Time', np.float32, ('Time'))
+wcdf_Time = writeDS.createVariable('Time', np.float64, ('Time'))
 wcdf_Time.long_name = "Time"
 wcdf_Time.units = timeUnits
 wcdf_Time.cartesian_axis = "T"
@@ -162,31 +162,31 @@ wcdf_ell[:] = ellList
 
 
 wcdf_Ubar = writeDS.createVariable(
-    'U', np.float32, ('ell', 'Time', 'yh', 'xh'))
+    'U', np.float64, ('ell', 'Time', 'yh', 'xh'))
 wcdf_Ubar.long_name = "Zonal Velocity"
 wcdf_Ubar.units = "ms-1"
 wcdf_Ubar[:, :, :, :] = allUbar[:, :, :, :]
 
 wcdf_Vbar = writeDS.createVariable(
-    'V', np.float32, ('ell', 'Time', 'yh', 'xh'))
+    'V', np.float64, ('ell', 'Time', 'yh', 'xh'))
 wcdf_Vbar.long_name = "Meridional Velocity"
 wcdf_Vbar.units = "ms-1"
 wcdf_Vbar[:, :, :, :] = allVbar[:, :, :, :]
 
 wcdf_hbar = writeDS.createVariable(
-    'h', np.float32, ('ell', 'Time', 'yh', 'xh'))
+    'h', np.float64, ('ell', 'Time', 'yh', 'xh'))
 wcdf_hbar.long_name = "Top Layer Height"
 wcdf_hbar.units = "m"
 wcdf_hbar[:, :, :, :] = allhbar[:, :, :, :]
 
 wcdf_hUbar = writeDS.createVariable(
-    'hU_bar', np.float32, ('ell', 'Time', 'yh', 'xh'))
+    'hU_bar', np.float64, ('ell', 'Time', 'yh', 'xh'))
 wcdf_hUbar.long_name = "product of h and U filtered"
 wcdf_hUbar.units = "m^2/sec"
 wcdf_hUbar[:, :, :, :] = allhUbar[:, :, :, :]
 
 wcdf_hVbar = writeDS.createVariable(
-    'hV_bar', np.float32, ('ell', 'Time', 'yh', 'xh'))
+    'hV_bar', np.float64, ('ell', 'Time', 'yh', 'xh'))
 wcdf_hVbar.long_name = "product of h and V filtered"
 wcdf_hVbar.units = "m^2/sec"
 wcdf_hVbar[:, :, :, :] = allhVbar[:, :, :, :]

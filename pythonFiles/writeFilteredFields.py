@@ -125,17 +125,17 @@ writeDS.createDimension('Time', None)
 writeDS.createDimension('xh', 240)
 writeDS.createDimension('yh', 320)
 
-wcdf_Xh = writeDS.createVariable('xh', np.float32, ('xh'))
+wcdf_Xh = writeDS.createVariable('xh', np.float64, ('xh'))
 wcdf_Xh.long_name = 'h point nominal longitude'
 wcdf_Xh.units = 'kilometers'
 wcdf_Xh[:] = xh[:]
 
-wcdf_Yh = writeDS.createVariable('yh', np.float32, ('yh'))
+wcdf_Yh = writeDS.createVariable('yh', np.float64, ('yh'))
 wcdf_Yh.long_name = 'h point nominal latitude'
 wcdf_Yh.units = 'kilometers'
 wcdf_Yh[:] = yh[:]
 
-wcdf_Time = writeDS.createVariable('Time', np.float32, ('Time'))
+wcdf_Time = writeDS.createVariable('Time', np.float64, ('Time'))
 wcdf_Time.long_name = "Time"
 wcdf_Time.units = timeUnits
 wcdf_Time.cartesian_axis = "T"
@@ -143,77 +143,77 @@ wcdf_Time.calendar_type = "JULIAN"
 wcdf_Time.calendar = "JULIAN"
 wcdf_Time[:] = timeVal
 
-wcdf_U_tilde = writeDS.createVariable('u_tilde', np.float32, ('Time', 'yh', 'xh'))
+wcdf_U_tilde = writeDS.createVariable('u_tilde', np.float64, ('Time', 'yh', 'xh'))
 wcdf_U_tilde.long_name = "u_tilde"
 wcdf_U_tilde.units = "m s^-1"
 wcdf_U_tilde[:, :, :] = U_tilde[:, :, :]
 
-wcdf_V_tilde = writeDS.createVariable('v_tilde', np.float32, ('Time', 'yh', 'xh'))
+wcdf_V_tilde = writeDS.createVariable('v_tilde', np.float64, ('Time', 'yh', 'xh'))
 wcdf_V_tilde.long_name = "v_tilde"
 wcdf_V_tilde.units = "m s^-1"
 wcdf_V_tilde[:, :, :] = V_tilde[:, :, :]
 
-wcdf_omega_bar = writeDS.createVariable('omega_bar', np.float32, ('Time', 'yh', 'xh'))
+wcdf_omega_bar = writeDS.createVariable('omega_bar', np.float64, ('Time', 'yh', 'xh'))
 wcdf_omega_bar.long_name = "filtered omega"
 wcdf_omega_bar.units = "s^-1"
 wcdf_omega_bar[:, :, :] = omega_bar[:, :, :]
 
-wcdf_omega_tilde = writeDS.createVariable('omega_tilde', np.float32, ('Time', 'yh', 'xh'))
+wcdf_omega_tilde = writeDS.createVariable('omega_tilde', np.float64, ('Time', 'yh', 'xh'))
 wcdf_omega_tilde.long_name = "weighted filtered omega"
 wcdf_omega_tilde.units = "s^-1"
 wcdf_omega_tilde[:, :, :] = omega_tilde[:, :, :]
 
 
-wcdf_Pi = writeDS.createVariable('Pi', np.float32, ('Time', 'yh', 'xh'))
+wcdf_Pi = writeDS.createVariable('Pi', np.float64, ('Time', 'yh', 'xh'))
 wcdf_Pi.long_name = "Energy Cascade Term, Pi"
 wcdf_Pi.units = "m^2 s^-3"
 wcdf_Pi[:, :, :] = Pi[:, :, :]
 
 
-wcdf_Lambda = writeDS.createVariable('Lambda', np.float32, ('Time', 'yh', 'xh'))
+wcdf_Lambda = writeDS.createVariable('Lambda', np.float64, ('Time', 'yh', 'xh'))
 wcdf_Lambda.long_name = "Energy Cascade Term, Lambda"
 wcdf_Lambda.units = "m^2 s^-3"
 wcdf_Lambda[:, :, :] = Lambda[:, :, :]
 
 
 wcdf_Lambda_str = writeDS.createVariable(
-    'Lambda_str', np.float32, ('Time', 'yh', 'xh'))
+    'Lambda_str', np.float64, ('Time', 'yh', 'xh'))
 wcdf_Lambda_str.long_name = "Modelled Energy Cascade Term (Strain Part), Lambda"
 wcdf_Lambda_str.units = "m^-1 s^-3"
 wcdf_Lambda_str[:, :, :] = Lambda_str[:, :, :]
 
 wcdf_Lambda_rot = writeDS.createVariable(
-    'Lambda_rot', np.float32, ('Time', 'yh', 'xh'))
+    'Lambda_rot', np.float64, ('Time', 'yh', 'xh'))
 wcdf_Lambda_rot.long_name = "Modelled Energy Cascade Term (Rotation Part), Lambda"
 wcdf_Lambda_rot.units = "m^-1 s^-3"
 wcdf_Lambda_rot[:, :, :] = Lambda_rot[:, :, :]
 
 wcdf_R_Barocl = writeDS.createVariable(
-    'R_Barocl', np.float32, ('Time', 'yh', 'xh'))
+    'R_Barocl', np.float64, ('Time', 'yh', 'xh'))
 wcdf_R_Barocl.long_name = "R_baroclinic, a source term from evolution of omega squared"
 wcdf_R_Barocl.units = "kg m^-3 s^-1"
 wcdf_R_Barocl[:, :, :] = R_Barocl[:, :, :]
 
 wcdf_S_Baro = writeDS.createVariable(
-    'S_Baro', np.float32, ('Time', 'yh', 'xh'))
+    'S_Baro', np.float64, ('Time', 'yh', 'xh'))
 wcdf_S_Baro.long_name = "S_barotropic, a source term from evolution of S squared"
 wcdf_S_Baro.units = "kg m^-3 s^-1"
 wcdf_S_Baro[:, :, :] = S_Baro[:, :, :]
 
 wcdf_Omega_tilde = writeDS.createVariable(
-    'Omega_tilde', np.float32, ('Time', 'yh', 'xh'))
+    'Omega_tilde', np.float64, ('Time', 'yh', 'xh'))
 wcdf_Omega_tilde.long_name = "Omega tilde"
 wcdf_Omega_tilde.units = "s^-2"
 wcdf_Omega_tilde[:, :, :] = omega_tilde[:, :, :]
 
 wcdf_S_tilde_sq = writeDS.createVariable(
-    'S_tilde_sq', np.float32, ('Time', 'yh', 'xh'))
+    'S_tilde_sq', np.float64, ('Time', 'yh', 'xh'))
 wcdf_S_tilde_sq.long_name = "S_tilde_squared SijSij"
 wcdf_S_tilde_sq.units = "s^-4"
 wcdf_S_tilde_sq[:, :, :] = S_tilde_sq[:, :,:]
 
 wcdf_S_bar_sq = writeDS.createVariable(
-    'S_bar_sq', np.float32, ('Time', 'yh', 'xh'))
+    'S_bar_sq', np.float64, ('Time', 'yh', 'xh'))
 wcdf_S_bar_sq.long_name = "S_bar_squared SijSij"
 wcdf_S_bar_sq.units = "s^-4"
 wcdf_S_bar_sq[:, :, :] = S_tilde_sq[:, :, :]

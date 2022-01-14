@@ -86,17 +86,17 @@ writeDS.createDimension('Time', None)
 writeDS.createDimension('xh', 240)
 writeDS.createDimension('yh', 320)
 
-wcdf_Xh = writeDS.createVariable('xh', np.float32, ('xh'))
+wcdf_Xh = writeDS.createVariable('xh', np.float64, ('xh'))
 wcdf_Xh.long_name = 'h point nominal longitude'
 wcdf_Xh.units = 'kilometers'
 wcdf_Xh[:] = xh[:]
 
-wcdf_Yh = writeDS.createVariable('yh', np.float32, ('yh'))
+wcdf_Yh = writeDS.createVariable('yh', np.float64, ('yh'))
 wcdf_Yh.long_name = 'h point nominal latitude'
 wcdf_Yh.units = 'kilometers'
 wcdf_Yh[:] = yh[:]
 
-wcdf_Time = writeDS.createVariable('Time', np.float32, ('Time'))
+wcdf_Time = writeDS.createVariable('Time', np.float64, ('Time'))
 wcdf_Time.long_name = "Time"
 wcdf_Time.units = timeUnits
 wcdf_Time.cartesian_axis = "T"
@@ -104,32 +104,32 @@ wcdf_Time.calendar_type = "JULIAN"
 wcdf_Time.calendar = "JULIAN"
 wcdf_Time[:] = timeVal
 
-wcdf_U = writeDS.createVariable('u', np.float32, ('Time', 'yh', 'xh'))
+wcdf_U = writeDS.createVariable('u', np.float64, ('Time', 'yh', 'xh'))
 wcdf_U.long_name = "Surface Zonal velocity"
 wcdf_U.units = "m s-1"
 wcdf_U[:,:,:] = U[:,:,:]
 
-wcdf_V = writeDS.createVariable('v', np.float32, ('Time', 'yh', 'xh'))
+wcdf_V = writeDS.createVariable('v', np.float64, ('Time', 'yh', 'xh'))
 wcdf_V.long_name = "Surface Meridional velocity"
 wcdf_V.units = "m s-1"
 wcdf_V[:,:,:] = V[:,:,:]
 
-wcdf_e = writeDS.createVariable('e', np.float32, ('Time', 'yh', 'xh'))
+wcdf_e = writeDS.createVariable('e', np.float64, ('Time', 'yh', 'xh'))
 wcdf_e.long_name = "Surface Interface Height Relative to Mean Sea Level"
 wcdf_e.units = "m"
 wcdf_e[:,:,:] = e[:,:,:]
 
-wcdf_h = writeDS.createVariable('h', np.float32, ('Time', 'yh', 'xh'))
+wcdf_h = writeDS.createVariable('h', np.float64, ('Time', 'yh', 'xh'))
 wcdf_h.long_name = "Surface Layer Thickness"
 wcdf_h.units = "m"
 wcdf_h[:, :, :] = h[:, :, :]
 
-wcdf_RV = writeDS.createVariable('RV', np.float32, ('Time', 'yh', 'xh'))
+wcdf_RV = writeDS.createVariable('RV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_RV.long_name = "Relative Vorticity"
 wcdf_RV.units = "s-1"
 wcdf_RV[:, :, :] = RV[:, :, :]
 
-wcdf_PV = writeDS.createVariable('PV', np.float32, ('Time', 'yh', 'xh'))
+wcdf_PV = writeDS.createVariable('PV', np.float64, ('Time', 'yh', 'xh'))
 wcdf_PV.long_name = "Potential Vorticity"
 wcdf_PV.units = "s-1"
 wcdf_PV[:, :, :] = PV[:, :, :]

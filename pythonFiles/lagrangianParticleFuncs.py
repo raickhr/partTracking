@@ -153,7 +153,7 @@ def biLinearInterpolate(x, y, xh , yh, nArray, arrayStack):
 
     return returnArr
 
-    # returnArr = np.zeros((nArray, plen), dtype=float)
+    # returnArr = np.zeros((nArray, plen), dtype=np.float64)
 
     # for fldIndx in range(nArray):
     #     Q1 = np.zeros((plen,),dtype = float)
@@ -186,8 +186,8 @@ def get_l_i_theta(theta_p, arr_theta_j, i_index):
 
     plen = len(theta_p) ### number of positions
 
-    num = np.ones((plen,),dtype=float)
-    den = np.ones((plen,),dtype=float)
+    num = np.ones((plen,),dtype=np.float64)
+    den = np.ones((plen,),dtype=np.float64)
     for j in range(4):
         if j != i_index:
             num[:] *= theta_p[:] - arr_theta_j[:, j]
@@ -266,7 +266,7 @@ def get_fields_at_loc(x_pos, y_pos, xh , yh, nArray, stackArr):
     y_pos_4arr_indices[outDomain, 3] = 0
 
     ## set 4 x 4 array for each particle positions
-    Arr = np.zeros((nArray, plen, 4, 4 ), dtype=float)
+    Arr = np.zeros((nArray, plen, 4, 4 ), dtype=np.float64)
     for arrIndx in range(nArray):
         workArray = stackArr[arrIndx,:,:]
         for p in range(plen):
@@ -281,7 +281,7 @@ def get_fields_at_loc(x_pos, y_pos, xh , yh, nArray, stackArr):
                     sys.exit()
 
     # interpolate array
-    interpolatedVal = np.zeros((nArray, plen), dtype=float)
+    interpolatedVal = np.zeros((nArray, plen), dtype=np.float64)
     for arrIndx in range(nArray):        
         for j in range(3):
             l_y_j = get_l_i_theta(y_pos[:], yh[y_pos_4arr_indices], j)

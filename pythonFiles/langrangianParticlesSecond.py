@@ -104,7 +104,7 @@ if nextFilePath.is_file():
     print('continuing file present')
     ds3 = Dataset(nextFile)
     # (s1, s2, s3) = np.shape(u)
-    # u1 = np.zeros((stride, s2, s3), dtype=float)
+    # u1 = np.zeros((stride, s2, s3), dtype=np.float64)
     # v1 = u1.copy()
     ## need future u1 values for the last step
     u1 = np.array(ds3.variables['u'])[0:stride, :, :]
@@ -112,7 +112,7 @@ if nextFilePath.is_file():
     u = np.concatenate((u, u1), axis=0)
     v = np.concatenate((v, v1), axis=0)
     ## put dummy values for Lambda and Pi so stack overflow does not occur
-    dummy = np.zeros(np.shape(u1), dtype=float)
+    dummy = np.zeros(np.shape(u1), dtype=np.float64)
     Lambda = np.concatenate((Lambda, dummy), axis=0)
     Pi = np.concatenate((Pi, dummy), axis=0)
 
@@ -141,8 +141,8 @@ if prevFilePath.is_file():
     ypos = np.array(ds4.variables['ypos_next'])
 
 
-LambdaVal = np.zeros((nParticles), dtype=np.float32)
-PiVal = np.zeros((nParticles), dtype=np.float32)
+LambdaVal = np.zeros((nParticles), dtype=np.float64)
+PiVal = np.zeros((nParticles), dtype=np.float64)
 
 
 def getPiandLambda(xpos, ypos, currentLambda, currentPi):
@@ -415,16 +415,16 @@ def updatePositon_linVel(xpos, ypos,
     return(xpos, ypos, lambdaVal, PiVal)
 
 
-xposVals = np.zeros((1, nParticles, ), dtype=float)
-yposVals = np.zeros((1, nParticles, ), dtype=float)
+xposVals = np.zeros((1, nParticles, ), dtype=np.float64)
+yposVals = np.zeros((1, nParticles, ), dtype=np.float64)
 
-xpos_next = np.zeros((nParticles, ), dtype=float)
-ypos_next = np.zeros((nParticles, ), dtype=float)
+xpos_next = np.zeros((nParticles, ), dtype=np.float64)
+ypos_next = np.zeros((nParticles, ), dtype=np.float64)
 
-piVals = np.zeros((1, nParticles, ), dtype=float)
-lambdaVals = np.zeros((1, nParticles, ), dtype=float)
+piVals = np.zeros((1, nParticles, ), dtype=np.float64)
+lambdaVals = np.zeros((1, nParticles, ), dtype=np.float64)
 
-cdfTimeVals = [] #np.zeros((1,), dtype=float)
+cdfTimeVals = [] #np.zeros((1,), dtype=np.float64)
 
 for t in range(0, timelen):
     checkTime = timeVal[t]
@@ -449,7 +449,7 @@ for t in range(0, timelen):
                                                             u[t, :, :], v[t, :, :],
                                                             u[t+stride, :, :], v[t+stride, :, :])
         if t < (timelen-stride):
-            dummy = np.zeros((1, nParticles, ), dtype=float)
+            dummy = np.zeros((1, nParticles, ), dtype=np.float64)
             dummy[0,:] = xpos[:].copy()
             xposVals = np.concatenate((xposVals, dummy), axis=0)
             dummy[0,:] = ypos[:].copy()
@@ -470,18 +470,18 @@ writeDS = Dataset(wFname, 'w', format='NETCDF4_CLASSIC')
 writeDS.createDimension('Time', None)
 writeDS.createDimension('PID', nParticles)
 
-wCDF_Time = writeDS.createVariable('Time', np.float32, ('Time'))
+wCDF_Time = writeDS.createVariable('Time', np.float64, ('Time'))
 wCDF_Time.units = timeUnits
 
-wCDF_xpos = writeDS.createVariable('xpos', np.float32, ('Time', 'PID'))
-wCDF_ypos = writeDS.createVariable('ypos', np.float32, ('Time', 'PID'))
+wCDF_xpos = writeDS.createVariable('xpos', np.float64, ('Time', 'PID'))
+wCDF_ypos = writeDS.createVariable('ypos', np.float64, ('Time', 'PID'))
 
-wCDF_nxpos = writeDS.createVariable('xpos_next', np.float32, ('PID'))
-wCDF_nypos = writeDS.createVariable('ypos_next', np.float32, ('PID'))
+wCDF_nxpos = writeDS.createVariable('xpos_next', np.float64, ('PID'))
+wCDF_nypos = writeDS.createVariable('ypos_next', np.float64, ('PID'))
 
 
-wCDF_Lambda = writeDS.createVariable('Lambda', np.float32, ('Time', 'PID'))
-wCDF_Pi = writeDS.createVariable('Pi', np.float32, ('Time', 'PID'))
+wCDF_Lambda = writeDS.createVariable('Lambda', np.float64, ('Time', 'PID'))
+wCDF_Pi = writeDS.createVariable('Pi', np.float64, ('Time', 'PID'))
 
 (tlen, dummy) = np.shape(xposVals)
 wCDF_Time[0:tlen] = np.array(cdfTimeVals)[:]
