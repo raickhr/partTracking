@@ -15,18 +15,17 @@ parser.add_argument("--inputFile", "-f", type=str, default='prog_RequiredFieldsO
 parser.add_argument("--fldLoc", "-l", type=str, default='.', action='store',
                     help="this is the location of the output file from MOM6")
 
-parser.add_argument("--ellInKm", "-e", type=int, default=100, action='store',
-                    help="this is the filterlength")
-
 args = parser.parse_args()
 
 fileName = args.inputFile
 fldLoc = args.fldLoc
-ellInKm = args.ellInKm
+ellInKm = 0
 
 readFileName = fldLoc + '/' + fileName
+
+suffix = '_FilteredFields_{0:03d}km_4O.nc'.format(ellInKm)
 writeFileName = fldLoc + '/' + \
-    fileName.replace('_RequiredFieldsOnly_4O.nc', '_FilteredFields_0ell_4O.nc')
+    fileName.replace('_RequiredFieldsOnly_4O.nc', suffix)
 
 ds = Dataset(readFileName)
 
@@ -38,7 +37,8 @@ timeUnits = ds.variables['Time'].units
 U = np.array(ds.variables['u'][:, :, :], dtype=np.float64)
 V = np.array(ds.variables['v'][:, :, :], dtype=np.float64)
 h = np.array(ds.variables['h'][:, :, :], dtype=np.float64)
-P = np.array(ds.variables['e'][:, :, :], dtype=np.float64) * 9.81 ## constant rho is omitted
+# constant rho is omitted and it is adjusted in the drag and baroclinic terms
+P = np.array(ds.variables['e'][:, :, :], dtype=np.float64)
 
 timeLen, Ylen, Xlen = np.shape(U)
 print('shape of the array U ', timeLen, Ylen, Xlen)
@@ -48,10 +48,8 @@ farr = np.ones((Ylen, Xlen), dtype=np.float64)
 f0 = 6.49e-05
 beta = 2.0E-11
 
-y = yh - np.mean(yh)
-
 for i in range(Ylen):
-    farr[i, :] = f0 + beta*y[i]
+    farr[i, :] = f0 + beta*yh[i]
 
 
 ## f*U

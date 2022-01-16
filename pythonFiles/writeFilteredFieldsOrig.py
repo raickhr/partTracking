@@ -25,8 +25,10 @@ fldLoc = args.fldLoc
 ellInKm = args.ellInKm
 
 readFileName = fldLoc + '/' + fileName
+suffix = '_FilteredFields_{0:03d}km_4O.nc'.format(ellInKm)
+
 writeFileName = fldLoc + '/' + \
-    fileName.replace('_RequiredFieldsOnly_4O.nc','_FilteredFields_4O.nc')
+    fileName.replace('_RequiredFieldsOnly_4O.nc',suffix)
 
 ds = Dataset(readFileName)
 
@@ -39,7 +41,7 @@ timeUnits = ds.variables['Time'].units
 U = np.array(ds.variables['u'])
 V = np.array(ds.variables['v'])
 h = np.array(ds.variables['h'])
-P = np.array(ds.variables['e']) * 9.81  # a constant factor of rho is omitted
+P = np.array(ds.variables['e']) * 9.81  
 
 #layer thickness gradients calculations
 dx_h, dy_h = getGradient(h, dxInKm*1000, dyInKm*1000)

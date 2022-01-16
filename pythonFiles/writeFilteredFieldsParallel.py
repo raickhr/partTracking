@@ -35,8 +35,11 @@ if rank == 0:
     ellInKm = args.ellInKm
 
     readFileName = fldLoc + '/' + fileName
+    readSuffix = '_RequiredFieldsOnly_4O.nc'
+
+    writeSuffix = '_FilteredFields_{0:03d}km_4O.nc'.format(ellInKm)
     writeFileName = fldLoc + '/' + \
-        fileName.replace('_RequiredFieldsOnly_4O.nc', '_FilteredFields_4O.nc')
+        fileName.replace(readSuffix, writeSuffix)
 
     ds = Dataset(readFileName)
 
@@ -49,8 +52,8 @@ if rank == 0:
     globalU = np.array(ds.variables['u'][:,:,:], dtype = float)
     globalV = np.array(ds.variables['v'][:,:,:], dtype = float)
     globalh = np.array(ds.variables['h'][:,:,:], dtype = float)
-    globalP = np.array(ds.variables['e'][:, :, :], dtype=np.float64) * 9.81 ## rho is omitted
-
+    globalP = np.array(ds.variables['e'][:, :, :], dtype=np.float64) ## constant rho is omitted and it is adjusted in the drag and baroclinic terms
+    
     timeLen, Ylen, Xlen = np.shape(globalU)
     print('File reading complete by processor', rank)
     print('shape of the array U ', timeLen, Ylen, Xlen)
@@ -59,11 +62,9 @@ if rank == 0:
     farr = np.ones((Ylen, Xlen), dtype=np.float64)
     f0 = 6.49e-05
     beta = 2.0E-11
-    
-    y = yh - np.mean(yh)
 
     for i in range(Ylen):
-        farr[i, :] = f0 + beta*y[i]
+        farr[i, :] = f0 + beta*yh[i]
 
     localTimeLen = timeLen//nprocs
     extra = timeLen%nprocs

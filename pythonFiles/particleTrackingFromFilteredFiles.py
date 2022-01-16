@@ -96,7 +96,7 @@ for fileNum in range(nFiles):
             yvel_inGrid = v[ts:te,:,:]
 
             #reading fields from netcdf file
-            allFields = np.zeros((config.nWriteFields, ylen, xlen), dtype=np.float64)
+            allFields = np.zeros((config.nWriteFields, ylen, xlen), dtype=float)
 
             for fieldCount in range(config.nWriteFields):
                 varName = config.writeFieldsName[fieldCount]
@@ -178,18 +178,18 @@ for fileNum in range(nFiles):
     writeDS.createDimension('Time', None)
     writeDS.createDimension('PID', config.nParticles)
     
-    wCDF_Time = writeDS.createVariable('Time', np.float64, ('Time'))
+    wCDF_Time = writeDS.createVariable('Time', np.float32, ('Time'))
     wCDF_Time.units = timeUnits
     wCDF_Time[0:timelen] = timeVal[0:timelen]
     
-    wCDF_xpos = writeDS.createVariable('xpos', np.float64, ('Time', 'PID'))
-    wCDF_ypos = writeDS.createVariable('ypos', np.float64, ('Time', 'PID'))
+    wCDF_xpos = writeDS.createVariable('xpos', np.float32, ('Time', 'PID'))
+    wCDF_ypos = writeDS.createVariable('ypos', np.float32, ('Time', 'PID'))
     wCDF_xpos[:, :] = all_xpos[:, :]
     wCDF_ypos[:, :] = all_ypos[:, :]
     
     for fieldCount in range(config.nWriteFields):
         varName = config.writeFieldsName[fieldCount]
-        wCDF_var = writeDS.createVariable(varName, np.float64, ('Time', 'PID'))
+        wCDF_var = writeDS.createVariable(varName, np.float32, ('Time', 'PID'))
         wCDF_var[:, :] = writeFieldsVals[fieldCount, :, :]
     
     writeDS.close()

@@ -50,10 +50,8 @@ PV = np.array(ds.variables['PV'])
 farr = np.ones(np.shape(U),dtype=np.float64)
 (tlen, ylen, xlen) = np.shape(U)
 
-y = yh - np.mean(yh)
-
 for i in range(ylen):
-    farr[:,i,:] = f0 + beta*y[i]
+    farr[:,i,:] = f0 + beta*yh[i]
 
 
 d_dx_U, d_dy_U = getGradient(U, dxInKm*1000, dyInKm*1000)

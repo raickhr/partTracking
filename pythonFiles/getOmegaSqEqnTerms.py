@@ -1,5 +1,7 @@
 from filteringFunctions import *
 from netCDF4 import Dataset
+import os.path
+from os import path
 import argparse
 
 dxInKm = 5
@@ -27,11 +29,21 @@ ellInKm = args.ellInKm
 rho = args.rho
 
 readFileName = fldLoc + '/' + fileName
+readSuffix = '_FilteredFields_{0:03d}km_4O.nc'.format(ellInKm)
+fnum = ""
+for s in fileName:
+    if s.isdigit():
+        fnum += s
+fnum = int(fnum)
+nextReadFileName = fldLoc + '/prog_{0:03d}'.format(fnum + 1) + readSuffix
+
+
+writeSuffix = '_OmegaEqnTerms_{0:03d}km_4O.nc'.format(ellInKm)
 writeFileName = fldLoc + '/' + \
-    fileName.replace("_FilteredFields_4O.nc",
-                     "_OmegaEqnTerms_4O.nc")
+    fileName.replace(readSuffix, writeSuffix)
 
 ds = Dataset(readFileName)
+    
 
 xh = np.array(ds.variables['xh'])
 yh = np.array(ds.variables['yh'])
@@ -83,7 +95,27 @@ omega_bar = d_dx_V_bar - d_dy_U_bar
 
 d_dx_omega_tilde_sq, d_dy_omega_tilde_sq = getGradient(omega_tilde_sq, dxInKm*1000, dyInKm*1000)
 d_dt_omega_tilde_sq = (np.roll(omega_tilde_sq, -1, axis=0) - omega_tilde_sq)/dt
-d_dt_omega_tilde_sq[tlen-1, :, :] = float('nan')
+
+if path.exists(nextReadFileName):
+    ds2 = Dataset(nextReadFileName)
+    hU_bar_next = np.array(ds2.variables['hu_bar'][0:2, :, :])
+    hV_bar_next = np.array(ds2.variables['hv_bar'][0:2, :, :])
+    h_bar_next = np.array(ds2.variables['h_bar'][0:2, :, :])
+    U_tilde_next = hU_bar_next/h_bar_next
+    V_tilde_next = hV_bar_next/h_bar_next
+    d_dx_U_tilde_next, d_dy_U_tilde_next = getGradient(
+        U_tilde_next, dxInKm*1000, dyInKm*1000)
+    d_dx_V_tilde_next, d_dy_V_tilde_next = getGradient(
+        V_tilde_next, dxInKm*1000, dyInKm*1000)
+    omega_tilde_next = d_dx_V_tilde_next - d_dy_U_tilde_next
+    omega_tilde_sq_next = omega_tilde_next ** 2
+    d_dt_omega_tilde_sq[tlen-1, :,
+                        :] = (omega_tilde_sq_next[0, :, :] - omega_tilde_sq[tlen-1, :, :])/dt
+    ds2.close()
+
+else:
+    print('filling the last time derivative with nan value')
+    d_dt_omega_tilde_sq[tlen-1, :, :] = float('nan')
 
 advecTermOmegaTildeSq = U_tilde * d_dx_omega_tilde_sq + V_tilde * d_dy_omega_tilde_sq
 
