@@ -38,20 +38,30 @@ fnum = int(fnum)
 nextReadFileName = fldLoc + '/prog_{0:03d}'.format(fnum + 1) + readSuffix
 
 
-writeSuffix = '_OmegaEqnTerms_{0:03d}km_4O.nc'.format(ellInKm)
+writeSuffix = '_PotVortEqnTerms_{0:03d}km_4O.nc'.format(ellInKm)
 writeFileName = fldLoc + '/' + \
     fileName.replace(readSuffix, writeSuffix)
 
 ds = Dataset(readFileName)
-    
+
 
 xh = np.array(ds.variables['xh'])
 yh = np.array(ds.variables['yh'])
 timeVal = np.array(ds.variables['Time'])
 timeUnits = ds.variables['Time'].units
 
+Xlen = len(xh)
+Ylen = len(yh)
+
 dt = timeVal[1] - timeVal[0]
 tlen = len(timeVal)
+
+farr = np.ones((tlen, Ylen, Xlen), dtype=np.float64)
+f0 = 6.49e-05
+beta = 2.0E-11
+
+for i in range(Ylen):
+    farr[:, i, :] = f0 + beta*yh[i]
 
 U_bar = np.array(ds.variables['u_bar'])
 V_bar = np.array(ds.variables['v_bar'])
@@ -88,13 +98,11 @@ d_dx_U_bar, d_dy_U_bar = getGradient(U_bar, dxInKm*1000, dyInKm*1000)
 d_dx_V_bar, d_dy_V_bar = getGradient(V_bar, dxInKm*1000, dyInKm*1000)
 
 
-
 omega_tilde = d_dx_V_tilde - d_dy_U_tilde
-omega_tilde_sq = omega_tilde ** 2
 omega_bar = d_dx_V_bar - d_dy_U_bar
+potVort = (omega_tilde +  farr)/h_bar
 
-d_dx_omega_tilde_sq, d_dy_omega_tilde_sq = getGradient(omega_tilde_sq, dxInKm*1000, dyInKm*1000)
-d_dt_omega_tilde_sq = (np.roll(omega_tilde_sq, -1, axis=0) - omega_tilde_sq)/dt
+d_dt_potVort = (np.roll(potVort, -1, axis=0) - potVort)/dt
 
 if path.exists(nextReadFileName):
     ds2 = Dataset(nextReadFileName)
@@ -108,58 +116,59 @@ if path.exists(nextReadFileName):
     d_dx_V_tilde_next, d_dy_V_tilde_next = getGradient(
         V_tilde_next, dxInKm*1000, dyInKm*1000)
     omega_tilde_next = d_dx_V_tilde_next - d_dy_U_tilde_next
-    omega_tilde_sq_next = omega_tilde_next ** 2
-    d_dt_omega_tilde_sq[tlen-1, :,
-                        :] = (omega_tilde_sq_next[0, :, :] - omega_tilde_sq[tlen-1, :, :])/dt
+    potVort_next = (omega_tilde_next + farr[0:2, :, :])/h_bar_next
+    d_dt_potVort[tlen-1, :,
+                        :] = (potVort_next[0, :, :] - potVort[tlen-1, :, :])/dt
     ds2.close()
 
 else:
     print('filling the last time derivative with nan value')
-    d_dt_omega_tilde_sq[tlen-1, :, :] = float('nan')
+    d_dt_potVort[tlen-1, :, :] = float('nan')
 
-advecTermOmegaTildeSq = U_tilde * d_dx_omega_tilde_sq + V_tilde * d_dy_omega_tilde_sq
 
-## Dilation term
-divUtilde = getDiv(U_tilde, V_tilde, dxInKm*1000, dyInKm*1000)
-divfUtilde = getDiv(fU_tilde, fV_tilde, dxInKm*1000, dyInKm*1000)
-
-R_Dilate = - h_bar * divUtilde * omega_tilde_sq - h_bar * omega_tilde * divfUtilde
+d_dx_potVort, d_dy_potVort = getGradient(
+    potVort, dxInKm*1000, dyInKm*1000)
+advecTermPotVort = U_tilde * \
+    d_dx_potVort + V_tilde * d_dy_potVort
 
 ## Baroclinic term
-R_Barocl = omega_tilde * \
-    (d_dx_h_bar*d_dy_hP_bar - d_dy_h_bar*d_dx_hP_bar)/(h_bar)
+R_Barocl = (d_dx_h_bar*d_dy_hP_bar - d_dy_h_bar*d_dx_hP_bar)/(h_bar**3)
+
+## LS_Drag
+
+LS_Drag = (d_dx_P_bar * d_dy_h_bar - d_dy_P_bar * d_dx_h_bar)/(h_bar **2)
+
+## SS_Drag
+tau_P_gradh_xComp = Pdxh_bar - (P_bar*d_dx_h_bar)
+tau_P_gradh_yComp = Pdyh_bar - (P_bar*d_dy_h_bar)
+
+firstTerm = getZCurl(tau_P_gradh_xComp, tau_P_gradh_yComp,
+             dxInKm*1000, dyInKm*1000)/(h_bar**2)
+secondTerm = -(d_dx_h_bar * tau_P_gradh_yComp - d_dy_h_bar * tau_P_gradh_xComp)/(h_bar**3)
+SS_Drag = firstTerm + secondTerm
+
 
 ## R_Substress term
 hbar_TauTildeUU = h_bar * (UU_tilde - U_tilde * U_tilde)
 hbar_TauTildeUV = h_bar * (UV_tilde - U_tilde * V_tilde)
 hbar_TauTildeVV = h_bar * (VV_tilde - V_tilde * V_tilde)
 
-d_dx_hbar_TauTildeUU, d_dy_hbar_TauTildeUU = getGradient(hbar_TauTildeUU , dxInKm*1000, dyInKm*1000)
-d_dx_hbar_TauTildeUV, d_dy_hbar_TauTildeUV = getGradient(hbar_TauTildeUV , dxInKm*1000, dyInKm*1000)
-d_dx_hbar_TauTildeVV, d_dy_hbar_TauTildeVV = getGradient(hbar_TauTildeVV , dxInKm*1000, dyInKm*1000)
+d_dx_hbar_TauTildeUU, d_dy_hbar_TauTildeUU = getGradient(
+    hbar_TauTildeUU, dxInKm*1000, dyInKm*1000)
+d_dx_hbar_TauTildeUV, d_dy_hbar_TauTildeUV = getGradient(
+    hbar_TauTildeUV, dxInKm*1000, dyInKm*1000)
+d_dx_hbar_TauTildeVV, d_dy_hbar_TauTildeVV = getGradient(
+    hbar_TauTildeVV, dxInKm*1000, dyInKm*1000)
 
 divhTau_x_comp = d_dx_hbar_TauTildeUU + d_dy_hbar_TauTildeUV
 divhTau_y_comp = d_dx_hbar_TauTildeUV + d_dy_hbar_TauTildeVV
 
-firstTerm = - omega_tilde * getZCurl(divhTau_x_comp, divhTau_y_comp, dxInKm*1000, dyInKm*1000)
-secondTerm = omega_tilde / h_bar * (d_dx_h_bar * divhTau_y_comp - d_dy_h_bar * divhTau_x_comp)
+firstTerm = - getZCurl(divhTau_x_comp, divhTau_y_comp, dxInKm*1000, dyInKm*1000)/(h_bar**2)
+secondTerm = (d_dx_h_bar * divhTau_y_comp - d_dy_h_bar * divhTau_x_comp)/(h_bar**3)
 
 R_substress = firstTerm + secondTerm
 
 
-## LS_Drag 
-
-LS_Drag = omega_tilde *(d_dx_P_bar * d_dy_h_bar - d_dy_P_bar * d_dx_h_bar)
-
-## SS_Drag
-tau_P_gradh_xComp = Pdxh_bar - (P_bar*d_dx_h_bar)
-tau_P_gradh_yComp = Pdyh_bar - (P_bar*d_dy_h_bar)
-
-firstTerm = omega_tilde * \
-    getZCurl(tau_P_gradh_xComp, tau_P_gradh_yComp,
-             dxInKm*1000, dyInKm*1000)
-secondTerm = - omega_tilde/(h_bar) * (d_dx_h_bar * tau_P_gradh_yComp - d_dy_h_bar * tau_P_gradh_xComp)
-SS_Drag = firstTerm + secondTerm
 
 
 writeDS = Dataset(writeFileName, 'w', format='NETCDF4_CLASSIC')
@@ -210,32 +219,23 @@ wcdf_omega_tilde.long_name = "weighted filtered omega"
 wcdf_omega_tilde.units = "s^-1"
 wcdf_omega_tilde[:, :, :] = omega_tilde[:, :, :]
 
-wcdf_Omega_tilde_sq = writeDS.createVariable(
-    'Omega_tilde_sq', np.float64, ('Time', 'yh', 'xh'))
-wcdf_Omega_tilde_sq.long_name = "Omega tilde squared"
-wcdf_Omega_tilde_sq.units = "s^-4"
-wcdf_Omega_tilde_sq[:, :, :] = omega_tilde_sq[:, :, :]
+wcdf_potVort = writeDS.createVariable(
+    'potVort', np.float64, ('Time', 'yh', 'xh'))
+wcdf_potVort.long_name = "Potential Vorticity"
+wcdf_potVort.units = "s^-4"
+wcdf_potVort[:, :, :] = potVort[:, :, :]
 
-wcdf_d_dt_omega_tilde_sq = writeDS.createVariable(
-    'd_dt_omega_tilde_sq', np.float64, ('Time', 'yh', 'xh'))
-wcdf_d_dt_omega_tilde_sq.long_name = "d_dt Omega tilde squared"
-wcdf_d_dt_omega_tilde_sq.units = "s^-3"
-wcdf_d_dt_omega_tilde_sq[:, :, :] = d_dt_omega_tilde_sq[:, :, :]
+wcdf_d_dt_potVort = writeDS.createVariable(
+    'd_dt_potVort', np.float64, ('Time', 'yh', 'xh'))
+wcdf_d_dt_potVort.long_name = "d_dt Potential Vorticity"
+wcdf_d_dt_potVort.units = "m^-1 s^-2"
+wcdf_d_dt_potVort[:, :, :] = d_dt_potVort[:, :, :]
 
-wcdf_advecTermOmegaTildeSq = writeDS.createVariable(
-    'advecTermOmegaTildeSq', np.float64, ('Time', 'yh', 'xh'))
-wcdf_advecTermOmegaTildeSq.long_name = "advection term for Omega tilde squared"
-wcdf_advecTermOmegaTildeSq.units = "s^-3"
-wcdf_advecTermOmegaTildeSq[:, :, :] = advecTermOmegaTildeSq[:, :, :]
-
-wcdf_R_Dilate = writeDS.createVariable(
-    'R_Dilate', np.float64, ('Time', 'yh', 'xh'))
-wcdf_R_Dilate.long_name = \
-    "dilation term"
-wcdf_R_Dilate.units = \
-    "m s^-3"
-wcdf_R_Dilate[:, :, :] = \
-    R_Dilate[:, :, :]
+wcdf_advecTermPotVort = writeDS.createVariable(
+    'advecTermPotVort', np.float64, ('Time', 'yh', 'xh'))
+wcdf_advecTermPotVort.long_name = "advection term for Potential Vorticity"
+wcdf_advecTermPotVort.units = "s^-3"
+wcdf_advecTermPotVort[:, :, :] = advecTermPotVort[:, :, :]
 
 
 wcdf_R_Barocl = writeDS.createVariable(
@@ -243,7 +243,7 @@ wcdf_R_Barocl = writeDS.createVariable(
 wcdf_R_Barocl.long_name = \
     "Baroclinic term"
 wcdf_R_Barocl.units = \
-    "m s^-3"
+    "m^-1 s^-2"
 wcdf_R_Barocl[:, :, :] = \
     R_Barocl[:, :, :]
 
@@ -252,7 +252,7 @@ wcdf_LS_Drag = writeDS.createVariable(
 wcdf_LS_Drag.long_name = \
     "Large Scale Drag Term"
 wcdf_LS_Drag.units = \
-    "m s^-3"
+    "m^-1 s^-2"
 wcdf_LS_Drag[:, :, :] = \
     LS_Drag[:, :, :]
 
@@ -262,7 +262,7 @@ wcdf_SS_Drag = writeDS.createVariable(
 wcdf_SS_Drag.long_name = \
     "Small Scale Drag Term"
 wcdf_SS_Drag.units = \
-    "m s^-3"
+    "m^-1 s^-2"
 wcdf_SS_Drag[:, :, :] = \
     SS_Drag[:, :, :]
 
@@ -272,7 +272,7 @@ wcdf_R_substress = writeDS.createVariable(
 wcdf_R_substress.long_name = \
     "Substress Term"
 wcdf_R_substress.units = \
-    "m s^-3"
+    "m^-1 s^-2"
 wcdf_R_substress[:, :, :] = \
     R_substress[:, :, :]
 
