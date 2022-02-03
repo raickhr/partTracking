@@ -1,5 +1,7 @@
 from filteringFunctions import *
 from netCDF4 import Dataset
+import os.path
+from os import path
 import argparse
 
 dxInKm = 5
@@ -26,6 +28,13 @@ f0 = 6.49e-05
 beta = 2.0E-11
 
 readFileName = fldLoc + '/' + fileName
+fnum = ""
+for s in fileName[0:8]:
+    if s.isdigit():
+        fnum += s
+fnum = int(fnum)
+nextReadFileName = fldLoc + \
+    '/prog_{0:03d}'.format(fnum + 1) + "_RequiredFieldsOnly_4O.nc"
 writeFileName = fldLoc + '/' + \
     fileName.replace("_RequiredFieldsOnly_4O.nc",
                      "_VorticityEqnTerms_4O.nc")
@@ -73,15 +82,38 @@ d_dt_totVort = (np.roll(totVort,-1,axis = 0) - totVort)/dt
 d_dt_RV = (np.roll(RV, -1, axis=0) - RV)/dt
 d_dt_PV = (np.roll(PV, -1, axis=0) - PV)/dt
 
-d_dt_omega[tlen-1, :, :] = float('nan')
-d_dt_totVort[tlen-1, :, :] = float('nan')
-d_dt_RV[tlen-1, :, :] = float('nan')
-d_dt_PV[tlen-1, :, :] = float('nan')
+if path.exists(nextReadFileName):
+    ds2 = Dataset(nextReadFileName)
+    U_next = np.array(ds2.variables['u'][0:2, :, :])
+    V_next = np.array(ds2.variables['v'][0:2, :, :])
+
+    d_dx_U_next, d_dy_U_next = getGradient(U_next, dxInKm*1000, dyInKm*1000)
+    d_dx_V_next, d_dy_V_next = getGradient(V_next, dxInKm*1000, dyInKm*1000)
+    
+    omega_next = (d_dx_V_next - d_dy_U_next)
+    RV_next = np.array(ds2.variables['RV'][0:2, :, :])
+    PV_next = np.array(ds2.variables['PV'][0:2, :, :])
+    totVort_next = omega_next + farr[0:2, :, :]
+
+
+    d_dt_omega[tlen-1, :, :] = (omega_next[0, :, :] - omega[tlen-1, :, :])/dt
+    d_dt_RV[tlen-1, :, :] = (RV_next[0, :, :] - RV[tlen-1, :, :])/dt
+    d_dt_PV[tlen-1, :, :] = (PV_next[0, :, :] - PV[tlen-1, :, :])/dt
+    d_dt_totVort[tlen-1, :, :] = (totVort_next[0, :, :] - totVort[tlen-1, :, :])/dt
+
+    ds2.close()
+
+else:
+    print('filling the last time derivative with nan value')
+    d_dt_omega[tlen-1, :, :] = float('nan')
+    d_dt_RV[tlen-1, :, :] = float('nan')
+    d_dt_PV[tlen-1, :, :] = float('nan')
+    d_dt_totVort[tlen-1, :, :] = float('nan')
 
 advecTermOmega = U* d_dx_omega + V* d_dy_omega
 advecTermTotVort = U * d_dx_totVort + V * d_dy_totVort
 advecTermRV = U* d_dx_RV + V* d_dy_RV
-advecTermPV = U* d_dx_omega + V* d_dy_PV
+advecTermPV = U* d_dx_PV + V* d_dy_PV
 
 divTermOmega = omega * divU
 divTermTotVort = totVort * divU
