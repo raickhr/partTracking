@@ -50,10 +50,17 @@ if rank == 0:
 
 
     globalU = np.array(ds.variables['u'][:,:,:], dtype = float)
+    globalU = np.ma.array(globalU, mask= np.isnan(globalU), fill_value=0.0).filled()
+
     globalV = np.array(ds.variables['v'][:,:,:], dtype = float)
+    globalV = np.ma.array(globalV, mask= np.isnan(globalV), fill_value=0.0).filled()
+
     globalh = np.array(ds.variables['h'][:,:,:], dtype = float)
+    globalh = np.ma.array(globalh, mask= np.isnan(globalh), fill_value=0.0).filled()
+
     globalP = np.array(ds.variables['e'][:, :, :], dtype=np.float64) ## constant rho is omitted and it is adjusted in the drag and baroclinic terms
-    
+    globalP = np.ma.array(globalP, mask= np.isnan(globalP), fill_value=0.0).filled()
+
     timeLen, Ylen, Xlen = np.shape(globalU)
     print('File reading complete by processor', rank)
     print('shape of the array U ', timeLen, Ylen, Xlen)
