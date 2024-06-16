@@ -112,8 +112,8 @@ def writeAdditionalVariables_subDaily(inds, pm, pn, s_w, s_rho, f, writeFolder, 
 
     omega_w = xds['omega']
     omegaA = 0.5*(omega_w.to_numpy()[:,0:-1,:,:] - omega_w.to_numpy()[:,1::,:,:])
-
     layerThickenss = z_w.to_numpy()[:,0:-1,:,:] - z_w.to_numpy()[:,1::,:,:]
+    omegaA/= layerThickenss
     #Km = xds['AKv']
     
     Pair = xds['Pair']
