@@ -294,11 +294,11 @@ def updatePositions(dt, xpos, ypos, zpos, xvel, yvel, zvel, dxi_z, deta_z, dsigm
 
     dlon = np.rad2deg((xvel * dt.seconds)/R)
     dlat = np.rad2deg((yvel * dt.seconds)/earthRad)
-    dz = zvel * dt.seconds
-    # slope = np.sqrt(dxi_z**2 + deta_z**2)
-    # horVel = np.sqrt(xvel**2 + yvel**2)
-    # new_zvel = -(horVel*slope)/dsigma_z + zvel
-    dsigma = dz/dsigma_z
+    #dz = zvel * dt.seconds
+    slope = np.sqrt(dxi_z**2 + deta_z**2)
+    horVel = np.sqrt(xvel**2 + yvel**2)
+    new_zvel = -(horVel*slope - zvel)/dsigma_z
+    dsigma = dt.seconds * new_zvel #dz/dsigma_z
     # print('In update Positions')
     # print(f'xvel, yvel, zvel = {xvel[0]}, {yvel[0]}, {zvel[0]}')
     print(f'dlon, dlat, dsigma = {dlon[0]}, {dlat[0]}, {dsigma[0]}')
