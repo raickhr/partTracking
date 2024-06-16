@@ -109,6 +109,11 @@ def writeAdditionalVariables_subDaily(inds, pm, pn, s_w, s_rho, f, writeFolder, 
     vo = xds['v_northward']
     wo_w = xds['w']
     wo = 0.5*(wo_w.to_numpy()[:,0:-1,:,:] - wo_w.to_numpy()[:,1::,:,:])
+
+    omega_w = xds['omega']
+    omegaA = 0.5*(omega_w.to_numpy()[:,0:-1,:,:] - omega_w.to_numpy()[:,1::,:,:])
+
+    layerThickenss = z_w.to_numpy()[:,0:-1,:,:] - z_w.to_numpy()[:,1::,:,:]
     #Km = xds['AKv']
     
     Pair = xds['Pair']
@@ -215,8 +220,11 @@ def writeAdditionalVariables_subDaily(inds, pm, pn, s_w, s_rho, f, writeFolder, 
         'pres':xr.DataArray(presA, dims=dimsList,   attrs= {'units':  'Pascal',
                                                             'long_name': 'from ssh and density'}),
         'wo':xr.DataArray(woA, dims=dimsList,   attrs= {'units':  'm/s',
+                                                        'long_name':'vertical velcity at cell center calculated by averaging' }),
+        'omega':xr.DataArray(woA, dims=dimsList,   attrs= {'units':  'm/s',
                                                         'long_name':'vertical velcity omega at cell center calculated by averaging' }),
-
+        'Z':xr.DataArray(woA, dims=dimsList,   attrs= {'units':  'm',
+                                                        'long_name':'Layer thickness' }),                                            
         'dxi_z':xr.DataArray(dxi_zA, dims=dimsList,   attrs= {'units':  'Pascal/m',
                                                                   'long_name': 'dx_Pres'}),
         'deta_z':xr.DataArray(deta_zA, dims=dimsList,   attrs= {'units':  'Pascal/m',
